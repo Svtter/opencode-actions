@@ -37,7 +37,7 @@ export OPENCODE_ATTEMPTS="3"
 export OPENCODE_RETRY_ON_REGEX="Failed to connect to github\\.com port 443"
 export OPENCODE_RETRY_DELAY_SECONDS="0"
 
-output="$($repo_root/run-opencode/run-opencode.sh 2>&1)"
+output="$("$repo_root/run-opencode/run-opencode.sh" 2>&1)"
 
 if [[ "$output" != *"success on attempt 3"* ]]; then
   printf 'expected successful retry output, got:\n%s\n' "$output" >&2
