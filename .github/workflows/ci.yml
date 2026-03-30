@@ -44,7 +44,6 @@ jobs:
           echo $! > /tmp/opencode-actions-http.pid
 
       - name: Setup OpenCode via local action
-        id: setup
         uses: ./setup-opencode
         with:
           install-url: http://127.0.0.1:8765/fake-installer.sh
@@ -55,7 +54,6 @@ jobs:
         uses: ./run-opencode
         with:
           args: github run
-          opencode-path: ${{ steps.setup.outputs.opencode-path }}
           attempts: 1
         env:
           FAKE_OPENCODE_VERSION: ci-smoke

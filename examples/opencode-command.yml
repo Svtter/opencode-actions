@@ -65,18 +65,13 @@ jobs:
 
       - name: Setup OpenCode
         if: ${{ steps.target.outputs.is_fork != 'true' }}
-        id: setup
         uses: Svtter/opencode-actions/setup-opencode@v1
-        with:
-          cache: true
-          cache-key: slash-command-v1
 
       - name: Run OpenCode
         if: ${{ steps.target.outputs.is_fork != 'true' }}
         uses: Svtter/opencode-actions/run-opencode@v1
         with:
           args: github run
-          opencode-path: ${{ steps.setup.outputs.opencode-path }}
         env:
           MODEL: zhipuai-coding-plan/glm-5
           USE_GITHUB_TOKEN: "true"

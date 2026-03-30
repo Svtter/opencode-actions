@@ -7,7 +7,24 @@ OPENCODE_ARGS="${OPENCODE_ARGS:-}"
 OPENCODE_WORKING_DIRECTORY="${OPENCODE_WORKING_DIRECTORY:-}"
 OPENCODE_ATTEMPTS="${OPENCODE_ATTEMPTS:-1}"
 OPENCODE_RETRY_ON_REGEX="${OPENCODE_RETRY_ON_REGEX:-}"
+OPENCODE_RETRY_PROFILE="${OPENCODE_RETRY_PROFILE:-}"
 OPENCODE_RETRY_DELAY_SECONDS="${OPENCODE_RETRY_DELAY_SECONDS:-15}"
+
+resolve_retry_profile() {
+  local profile="$1"
+  case "$profile" in
+    "")
+      printf '%s' "$OPENCODE_RETRY_ON_REGEX"
+      ;;
+    github-network)
+      printf "%s" "unable to access 'https://github.com/|Failed to connect to github\\.com port 443|Couldn't connect to server|Connection timed out|Operation timed out"
+      ;;
+    *)
+      printf 'unknown retry profile: %s\n' "$profile" >&2
+      exit 1
+      ;;
+  esac
+}
 
 require_positive_integer() {
   local value="$1"
@@ -29,6 +46,7 @@ require_non_negative_integer() {
 
 require_positive_integer "$OPENCODE_ATTEMPTS" "OPENCODE_ATTEMPTS"
 require_non_negative_integer "$OPENCODE_RETRY_DELAY_SECONDS" "OPENCODE_RETRY_DELAY_SECONDS"
+OPENCODE_RETRY_ON_REGEX="$(resolve_retry_profile "$OPENCODE_RETRY_PROFILE")"
 
 if [[ -n "$OPENCODE_WORKING_DIRECTORY" ]]; then
   cd "$OPENCODE_WORKING_DIRECTORY"

@@ -18,6 +18,10 @@ inputs:
     description: Retry only when stderr or stdout matches this regex.
     required: false
     default: ""
+  retry-profile:
+    description: Built-in retry profile, for example github-network.
+    required: false
+    default: ""
   retry-delay-seconds:
     description: Base delay between retries in seconds.
     required: false
@@ -43,6 +47,7 @@ runs:
         OPENCODE_WORKING_DIRECTORY: ${{ inputs.working-directory }}
         OPENCODE_ATTEMPTS: ${{ inputs.attempts }}
         OPENCODE_RETRY_ON_REGEX: ${{ inputs.retry-on-regex }}
+        OPENCODE_RETRY_PROFILE: ${{ inputs.retry-profile }}
         OPENCODE_RETRY_DELAY_SECONDS: ${{ inputs.retry-delay-seconds }}
         OPENCODE_BIN_PATH: ${{ inputs.opencode-path }}
       run: ${{ github.action_path }}/run-opencode.sh

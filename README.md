@@ -52,10 +52,12 @@ The internal cache key also includes a hash of `install-url`, so changing instal
 | `working-directory` | empty | Working directory used before invoking OpenCode |
 | `attempts` | `1` | Total attempts before failing |
 | `retry-on-regex` | empty | Retry only when command output matches this regex |
+| `retry-profile` | empty | Built-in retry preset such as `github-network` |
 | `retry-delay-seconds` | `15` | Base delay used between retries |
 | `opencode-path` | `opencode` | Explicit binary path from `setup-opencode` |
 
 `run-opencode` intentionally keeps provider secrets and model selection in workflow `env:` so the action stays generic.
+In the common same-job case, `setup-opencode` already exports `opencode` to `PATH`, so you do not need to pass `opencode-path` into `run-opencode`.
 
 ## Usage
 
@@ -68,20 +70,14 @@ uses: Svtter/opencode-actions/run-opencode@v1
 
 ```yaml
 - name: Setup OpenCode
-  id: setup
   uses: Svtter/opencode-actions/setup-opencode@v1
-  with:
-    cache: true
-    cache-key: review-v1
-    install-attempts: 3
 
 - name: Run OpenCode review
   uses: Svtter/opencode-actions/run-opencode@v1
   with:
     args: github run
     attempts: 3
-    retry-on-regex: unable to access 'https://github.com/|Failed to connect to github\.com port 443|Couldn't connect to server|Connection timed out|Operation timed out
-    opencode-path: ${{ steps.setup.outputs.opencode-path }}
+    retry-profile: github-network
   env:
     MODEL: zhipuai-coding-plan/glm-5.1
     PROMPT: |
@@ -92,6 +88,8 @@ uses: Svtter/opencode-actions/run-opencode@v1
 ```
 
 More examples live in `examples/`.
+
+If you need a binary from another job or a custom location, you can still pass `opencode-path` explicitly.
 
 The PR review example intentionally skips forked pull requests because repository secrets are not exposed there by default.
 The comment-command example also skips forked pull requests for the same reason.

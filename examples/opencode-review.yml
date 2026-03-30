@@ -20,20 +20,14 @@ jobs:
           ref: ${{ github.event.pull_request.head.ref }}
 
       - name: Setup OpenCode
-        id: setup
         uses: Svtter/opencode-actions/setup-opencode@v1
-        with:
-          cache: true
-          cache-key: review-v1
-          install-attempts: 3
 
       - name: Run OpenCode review
         uses: Svtter/opencode-actions/run-opencode@v1
         with:
           args: github run
           attempts: 3
-          retry-on-regex: unable to access 'https://github.com/|Failed to connect to github\.com port 443|Couldn't connect to server|Connection timed out|Operation timed out
-          opencode-path: ${{ steps.setup.outputs.opencode-path }}
+          retry-profile: github-network
         env:
           MODEL: zhipuai-coding-plan/glm-5.1
           PROMPT: |
