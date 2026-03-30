@@ -56,7 +56,7 @@ if [[ ! -x "$case_one/bin/opencode" ]]; then
   exit 1
 fi
 
-actual_version="$($case_one/bin/opencode --version)"
+actual_version="$("$case_one/bin/opencode" --version)"
 if [[ "$actual_version" != "$FAKE_OPENCODE_VERSION" ]]; then
   printf 'expected version %s, got %s\n' "$FAKE_OPENCODE_VERSION" "$actual_version" >&2
   exit 1
@@ -81,7 +81,7 @@ if [[ ! -x "$case_two/bin/opencode" ]]; then
   exit 1
 fi
 
-preinstalled_version="$($case_two/bin/opencode --version)"
+preinstalled_version="$("$case_two/bin/opencode" --version)"
 if [[ "$preinstalled_version" != "$FAKE_OPENCODE_VERSION" ]]; then
   printf 'expected installer-managed version %s, got %s\n' "$FAKE_OPENCODE_VERSION" "$preinstalled_version" >&2
   exit 1
@@ -101,7 +101,7 @@ export FAKE_INSTALL_TARGET="install-dir"
 export OPENCODE_ALLOW_PREINSTALLED="true"
 run_install_case "$case_two_opt_in"
 
-opt_in_version="$($case_two_opt_in/bin/opencode --version)"
+opt_in_version="$("$case_two_opt_in/bin/opencode" --version)"
 if [[ "$opt_in_version" != "preinstalled-version" ]]; then
   printf 'expected opt-in preinstalled version, got %s\n' "$opt_in_version" >&2
   exit 1
@@ -118,7 +118,7 @@ if [[ ! -x "$case_three/bin/opencode" ]]; then
   exit 1
 fi
 
-home_version="$($case_three/bin/opencode --version)"
+home_version="$("$case_three/bin/opencode" --version)"
 if [[ "$home_version" != "$FAKE_OPENCODE_VERSION" ]]; then
   printf 'expected fallback-installed version %s, got %s\n' "$FAKE_OPENCODE_VERSION" "$home_version" >&2
   exit 1
@@ -139,7 +139,7 @@ export FAKE_INSTALL_TARGET="install-dir"
 export OPENCODE_ALLOW_PREINSTALLED="false"
 run_install_case "$case_four"
 
-recovered_version="$($case_four/bin/opencode --version)"
+recovered_version="$("$case_four/bin/opencode" --version)"
 if [[ "$recovered_version" != "$FAKE_OPENCODE_VERSION" ]]; then
   printf 'expected recovered version %s, got %s\n' "$FAKE_OPENCODE_VERSION" "$recovered_version" >&2
   exit 1
