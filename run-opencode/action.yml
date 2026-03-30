@@ -1,0 +1,48 @@
+name: Run OpenCode
+description: Execute OpenCode with optional retry logic.
+
+inputs:
+  args:
+    description: Space-delimited arguments passed to opencode.
+    required: false
+    default: ""
+  working-directory:
+    description: Optional working directory before running opencode.
+    required: false
+    default: ""
+  attempts:
+    description: Total number of attempts before failing.
+    required: false
+    default: "1"
+  retry-on-regex:
+    description: Retry only when stderr or stdout matches this regex.
+    required: false
+    default: ""
+  retry-delay-seconds:
+    description: Base delay between retries in seconds.
+    required: false
+    default: "15"
+  opencode-path:
+    description: Optional explicit path to the opencode binary.
+    required: false
+    default: opencode
+
+runs:
+  using: composite
+  steps:
+    - if: ${{ runner.os != 'Linux' }}
+      shell: bash
+      run: |
+        set -euo pipefail
+        printf 'run-opencode currently supports Linux runners only\n' >&2
+        exit 1
+
+    - shell: bash
+      env:
+        OPENCODE_ARGS: ${{ inputs.args }}
+        OPENCODE_WORKING_DIRECTORY: ${{ inputs.working-directory }}
+        OPENCODE_ATTEMPTS: ${{ inputs.attempts }}
+        OPENCODE_RETRY_ON_REGEX: ${{ inputs.retry-on-regex }}
+        OPENCODE_RETRY_DELAY_SECONDS: ${{ inputs.retry-delay-seconds }}
+        OPENCODE_BIN_PATH: ${{ inputs.opencode-path }}
+      run: ${{ github.action_path }}/run-opencode.sh

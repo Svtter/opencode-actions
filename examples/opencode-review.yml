@@ -1,0 +1,53 @@
+name: OpenCode PR Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+  review:
+    if: github.event.pull_request.draft == false && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      - name: Setup OpenCode
+        id: setup
+        uses: your-org/opencode-actions/setup-opencode@v1
+        with:
+          cache: true
+          cache-key: review-v1
+          install-attempts: 3
+
+      - name: Run OpenCode review
+        uses: your-org/opencode-actions/run-opencode@v1
+        with:
+          args: github run
+          attempts: 3
+          retry-on-regex: unable to access 'https://github.com/|Failed to connect to github\.com port 443|Couldn't connect to server|Connection timed out|Operation timed out
+          opencode-path: ${{ steps.setup.outputs.opencode-path }}
+        env:
+          MODEL: zhipuai-coding-plan/glm-5.1
+          PROMPT: |
+            Review this pull request (read-only mode, DO NOT modify any code):
+
+            Please check:
+            - Code quality issues
+            - Potential bugs or logic errors
+            - Code style consistency
+            - Security concerns
+            - Performance issues
+            - Suggest improvements
+
+            Please respond in Chinese. DO NOT modify any code, only provide review comments.
+          USE_GITHUB_TOKEN: "true"
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ZHIPU_API_KEY: ${{ secrets.ZHIPU_API_KEY }}

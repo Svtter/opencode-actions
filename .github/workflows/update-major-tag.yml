@@ -1,0 +1,48 @@
+name: Update Major Tag
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  update-major:
+    if: startsWith(github.event.release.tag_name, 'v')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Move major tag
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$RELEASE_TAG" =~ ^v([0-9]+)\.[0-9]+\.[0-9]+$ ]]; then
+            printf 'Release tag %s is not semver; skipping major tag update.\n' "$RELEASE_TAG"
+            exit 0
+          fi
+
+          major_tag="v${BASH_REMATCH[1]}"
+          current_release_tag=""
+
+          if git rev-parse "$major_tag" >/dev/null 2>&1; then
+            current_release_tag="$({ git tag --points-at "$(git rev-list -n 1 "$major_tag")" | grep -E "^${major_tag}\.[0-9]+\.[0-9]+$" | sort -V | tail -n 1; } || true)"
+          fi
+
+          if [[ -n "$current_release_tag" ]]; then
+            newest_tag="$(printf '%s\n%s\n' "$current_release_tag" "$RELEASE_TAG" | sort -V | tail -n 1)"
+            if [[ "$newest_tag" != "$RELEASE_TAG" ]]; then
+              printf 'Current %s already points at newer release %s; skipping rollback to %s.\n' "$major_tag" "$current_release_tag" "$RELEASE_TAG"
+              exit 0
+            fi
+          fi
+
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git tag -f "$major_tag" "$RELEASE_TAG"
+          git push origin "refs/tags/$major_tag" --force

@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install shellcheck
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+
+      - name: Lint shell scripts
+        run: |
+          shellcheck setup-opencode/install-opencode.sh
+          shellcheck run-opencode/run-opencode.sh
+          shellcheck tests/setup-opencode.sh
+          shellcheck tests/run-opencode.sh
+          shellcheck tests/test.sh
+          shellcheck tests/fixtures/fake-installer.sh
+
+      - name: Run local test suite
+        run: bash tests/test.sh
+
+  smoke-actions:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Start fake installer server
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 --directory tests/fixtures >/tmp/opencode-actions-http.log 2>&1 &
+          echo $! > /tmp/opencode-actions-http.pid
+
+      - name: Setup OpenCode via local action
+        id: setup
+        uses: ./setup-opencode
+        with:
+          install-url: http://127.0.0.1:8765/fake-installer.sh
+          cache: false
+          install-attempts: 1
+
+      - name: Run OpenCode via local action
+        uses: ./run-opencode
+        with:
+          args: github run
+          opencode-path: ${{ steps.setup.outputs.opencode-path }}
+          attempts: 1
+        env:
+          FAKE_OPENCODE_VERSION: ci-smoke
+
+      - name: Stop fake installer server
+        if: always()
+        run: |
+          if [[ -f /tmp/opencode-actions-http.pid ]]; then
+            kill "$(cat /tmp/opencode-actions-http.pid)" || true
+          fi
