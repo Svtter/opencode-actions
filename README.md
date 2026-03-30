@@ -62,21 +62,21 @@ The internal cache key also includes a hash of `install-url`, so changing instal
 Public consumers should reference the subdirectory action path:
 
 ```yaml
-uses: your-org/opencode-actions/setup-opencode@v1
-uses: your-org/opencode-actions/run-opencode@v1
+uses: Svtter/opencode-actions/setup-opencode@v1
+uses: Svtter/opencode-actions/run-opencode@v1
 ```
 
 ```yaml
 - name: Setup OpenCode
   id: setup
-  uses: your-org/opencode-actions/setup-opencode@v1
+  uses: Svtter/opencode-actions/setup-opencode@v1
   with:
     cache: true
     cache-key: review-v1
     install-attempts: 3
 
 - name: Run OpenCode review
-  uses: your-org/opencode-actions/run-opencode@v1
+  uses: Svtter/opencode-actions/run-opencode@v1
   with:
     args: github run
     attempts: 3
