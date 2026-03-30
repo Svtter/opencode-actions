@@ -63,17 +63,10 @@ jobs:
           repository: ${{ steps.target.outputs.repository }}
           ref: ${{ steps.target.outputs.ref }}
 
-      - name: Setup OpenCode
-        if: ${{ steps.target.outputs.is_fork != 'true' }}
-        uses: Svtter/opencode-actions/setup-opencode@v1
-
       - name: Run OpenCode
         if: ${{ steps.target.outputs.is_fork != 'true' }}
-        uses: Svtter/opencode-actions/run-opencode@v1
+        uses: Svtter/opencode-actions/github-run-opencode@v1
         with:
-          args: github run
-        env:
-          MODEL: zhipuai-coding-plan/glm-5
-          USE_GITHUB_TOKEN: "true"
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ZHIPU_API_KEY: ${{ secrets.ZHIPU_API_KEY }}
+          model: zhipuai-coding-plan/glm-5
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          zhipu-api-key: ${{ secrets.ZHIPU_API_KEY }}

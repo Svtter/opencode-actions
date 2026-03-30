@@ -23,9 +23,11 @@ jobs:
       - name: Lint shell scripts
         run: |
           shellcheck setup-opencode/install-opencode.sh
+          shellcheck github-run-opencode/run-github-opencode.sh
           shellcheck run-opencode/run-opencode.sh
           shellcheck tests/setup-opencode.sh
           shellcheck tests/run-opencode.sh
+          shellcheck tests/github-run-opencode.sh
           shellcheck tests/test.sh
           shellcheck tests/fixtures/fake-installer.sh
 
@@ -57,6 +59,18 @@ jobs:
           attempts: 1
         env:
           FAKE_OPENCODE_VERSION: ci-smoke
+
+      - name: Run GitHub convenience action
+        uses: ./github-run-opencode
+        with:
+          install-url: http://127.0.0.1:8765/fake-installer.sh
+          cache: false
+          install-attempts: 1
+          attempts: 1
+          model: ci-wrapper
+          prompt: smoke prompt
+          github-token: smoke-gh-token
+          zhipu-api-key: smoke-zhipu-token
 
       - name: Stop fake installer server
         if: always()

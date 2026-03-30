@@ -6,6 +6,7 @@ This repository is licensed under Apache 2.0.
 
 ## What it includes
 
+- `github-run-opencode`: one-step wrapper for the common `opencode github run` workflow
 - `setup-opencode`: installs OpenCode, restores a dedicated cache, and exports the binary path
 - `run-opencode`: runs `opencode` with optional retry logic for flaky GitHub network failures
 
@@ -15,6 +16,25 @@ This repository is licensed under Apache 2.0.
 - installer-based bootstrap via `https://opencode.ai/install`
 - cache is best-effort and does not pin an exact OpenCode version
 - by default `setup-opencode` ignores unrelated `opencode` binaries already present on `PATH`; set `allow-preinstalled: true` only if you explicitly trust the runner image
+
+## github-run-opencode
+
+Use this when you want the shortest consumer workflow for `opencode github run`.
+
+### Common inputs
+
+| Input | Default | Description |
+| --- | --- | --- |
+| `model` | empty | Exported as `MODEL` before `opencode github run` |
+| `prompt` | empty | Exported as `PROMPT` before `opencode github run` |
+| `github-token` | empty | Exported as `GITHUB_TOKEN` before `opencode github run` |
+| `zhipu-api-key` | empty | Exported as `ZHIPU_API_KEY` before `opencode github run` |
+| `use-github-token` | `true` | Exported as `USE_GITHUB_TOKEN` before `opencode github run` |
+| `attempts` | `3` | Total attempts before failing |
+| `retry-profile` | `github-network` | Built-in retry preset for common GitHub failures |
+| `working-directory` | empty | Optional working directory before running OpenCode |
+
+`github-run-opencode` also accepts the setup-related inputs from `setup-opencode`, such as `cache`, `cache-key`, `install-attempts`, `install-url`, and `allow-preinstalled`.
 
 ## setup-opencode
 
@@ -64,32 +84,25 @@ In the common same-job case, `setup-opencode` already exports `opencode` to `PAT
 Public consumers should reference the subdirectory action path:
 
 ```yaml
+uses: Svtter/opencode-actions/github-run-opencode@v1
 uses: Svtter/opencode-actions/setup-opencode@v1
 uses: Svtter/opencode-actions/run-opencode@v1
 ```
 
 ```yaml
-- name: Setup OpenCode
-  uses: Svtter/opencode-actions/setup-opencode@v1
-
 - name: Run OpenCode review
-  uses: Svtter/opencode-actions/run-opencode@v1
+  uses: Svtter/opencode-actions/github-run-opencode@v1
   with:
-    args: github run
-    attempts: 3
-    retry-profile: github-network
-  env:
-    MODEL: zhipuai-coding-plan/glm-5.1
-    PROMPT: |
+    model: zhipuai-coding-plan/glm-5.1
+    prompt: |
       Review this pull request (read-only mode, DO NOT modify any code):
-    USE_GITHUB_TOKEN: "true"
-    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    ZHIPU_API_KEY: ${{ secrets.ZHIPU_API_KEY }}
+    github-token: ${{ secrets.GITHUB_TOKEN }}
+    zhipu-api-key: ${{ secrets.ZHIPU_API_KEY }}
 ```
 
 More examples live in `examples/`.
 
-If you need a binary from another job or a custom location, you can still pass `opencode-path` explicitly.
+If you need more control, you can still use `setup-opencode` and `run-opencode` directly. For example, pass `opencode-path` explicitly when reusing a binary from another job or a custom location.
 
 The PR review example intentionally skips forked pull requests because repository secrets are not exposed there by default.
 The comment-command example also skips forked pull requests for the same reason.
@@ -107,7 +120,7 @@ This repository includes a CI workflow that:
 
 - runs `shellcheck` on every bundled shell script
 - runs the local shell-based regression suite
-- smoke-tests both actions through `uses: ./setup-opencode` and `uses: ./run-opencode`
+- smoke-tests all three actions through `uses: ./setup-opencode`, `uses: ./run-opencode`, and `uses: ./github-run-opencode`
 
 ## Release Policy
 
@@ -122,7 +135,7 @@ This repository includes a CI workflow that:
 2. Verify `CI` passes on `main`.
 3. Create a GitHub release with a semver tag such as `v1.0.0`.
 4. Confirm the `Update Major Tag` workflow moved `v1` to that release.
-5. Use `owner/repo/setup-opencode@v1` or `owner/repo/run-opencode@v1` from other repositories.
+5. Use `owner/repo/github-run-opencode@v1` for the shortest path, or `owner/repo/setup-opencode@v1` plus `owner/repo/run-opencode@v1` for more control.
 
 The initial release-notes template lives at `docs/releases/v1.0.0.md`.
 

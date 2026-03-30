@@ -19,6 +19,11 @@ if [[ "${1:-}" == "--version" ]]; then
   exit 0
 fi
 printf 'fake opencode %s\n' "$*"
+printf 'MODEL=%s\n' "${MODEL:-}"
+printf 'PROMPT=%s\n' "${PROMPT:-}"
+printf 'USE_GITHUB_TOKEN=%s\n' "${USE_GITHUB_TOKEN:-}"
+printf 'GITHUB_TOKEN=%s\n' "${GITHUB_TOKEN:-}"
+printf 'ZHIPU_API_KEY=%s\n' "${ZHIPU_API_KEY:-}"
 EOF
 
 chmod +x "$target_dir/opencode"

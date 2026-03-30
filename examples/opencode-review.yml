@@ -19,18 +19,11 @@ jobs:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           ref: ${{ github.event.pull_request.head.ref }}
 
-      - name: Setup OpenCode
-        uses: Svtter/opencode-actions/setup-opencode@v1
-
       - name: Run OpenCode review
-        uses: Svtter/opencode-actions/run-opencode@v1
+        uses: Svtter/opencode-actions/github-run-opencode@v1
         with:
-          args: github run
-          attempts: 3
-          retry-profile: github-network
-        env:
-          MODEL: zhipuai-coding-plan/glm-5.1
-          PROMPT: |
+          model: zhipuai-coding-plan/glm-5.1
+          prompt: |
             Review this pull request (read-only mode, DO NOT modify any code):
 
             Please check:
@@ -42,6 +35,5 @@ jobs:
             - Suggest improvements
 
             Please respond in Chinese. DO NOT modify any code, only provide review comments.
-          USE_GITHUB_TOKEN: "true"
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          ZHIPU_API_KEY: ${{ secrets.ZHIPU_API_KEY }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          zhipu-api-key: ${{ secrets.ZHIPU_API_KEY }}
