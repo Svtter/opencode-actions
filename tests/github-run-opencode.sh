@@ -47,6 +47,7 @@ export GITHUB_RUN_OPENCODE_PROMPT="review prompt"
 export GITHUB_RUN_OPENCODE_USE_GITHUB_TOKEN="true"
 export GITHUB_RUN_OPENCODE_GITHUB_TOKEN="gh-token"
 export GITHUB_RUN_OPENCODE_ZHIPU_API_KEY="zhipu-token"
+export GITHUB_RUN_OPENCODE_OPENCODE_GO_API_KEY="go-token"
 export GITHUB_RUN_OPENCODE_ATTEMPTS="1"
 export GITHUB_RUN_OPENCODE_RETRY_PROFILE="github-network"
 
@@ -79,6 +80,11 @@ fi
 
 if [[ "$output" != *"ZHIPU_API_KEY=zhipu-token"* ]]; then
   printf 'expected ZHIPU_API_KEY env in output, got:\n%s\n' "$output" >&2
+  exit 1
+fi
+
+if [[ "$output" != *"OPENCODE_GO_API_KEY=go-token"* ]]; then
+  printf 'expected OPENCODE_GO_API_KEY env in output, got:\n%s\n' "$output" >&2
   exit 1
 fi
 

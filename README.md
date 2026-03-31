@@ -29,6 +29,7 @@ Use this when you want the shortest consumer workflow for `opencode github run`.
 | `prompt` | empty | Exported as `PROMPT` before `opencode github run` |
 | `github-token` | empty | Exported as `GITHUB_TOKEN` before `opencode github run` |
 | `zhipu-api-key` | empty | Exported as `ZHIPU_API_KEY` before `opencode github run` |
+| `opencode-go-api-key` | empty | Exported as `OPENCODE_GO_API_KEY` before `opencode github run` |
 | `use-github-token` | `true` | Exported as `USE_GITHUB_TOKEN` before `opencode github run` |
 | `attempts` | `3` | Total attempts before failing |
 | `retry-profile` | `github-network` | Built-in retry preset for common GitHub failures |
@@ -98,6 +99,7 @@ uses: Svtter/opencode-actions/run-opencode@v1
       Review this pull request (read-only mode, DO NOT modify any code):
     github-token: ${{ secrets.GITHUB_TOKEN }}
     zhipu-api-key: ${{ secrets.ZHIPU_API_KEY }}
+    opencode-go-api-key: ${{ secrets.OPENCODE_GO_API_KEY }}
 ```
 
 More examples live in `examples/`.

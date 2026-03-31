@@ -70,6 +70,10 @@ inputs:
     description: Value exported as ZHIPU_API_KEY before running `opencode github run`.
     required: false
     default: ""
+  opencode-go-api-key:
+    description: Value exported as OPENCODE_GO_API_KEY before running `opencode github run`.
+    required: false
+    default: ""
 
 runs:
   using: composite
@@ -141,4 +145,5 @@ runs:
         GITHUB_RUN_OPENCODE_USE_GITHUB_TOKEN: ${{ inputs.use-github-token }}
         GITHUB_RUN_OPENCODE_GITHUB_TOKEN: ${{ inputs.github-token }}
         GITHUB_RUN_OPENCODE_ZHIPU_API_KEY: ${{ inputs.zhipu-api-key }}
+        GITHUB_RUN_OPENCODE_OPENCODE_GO_API_KEY: ${{ inputs.opencode-go-api-key }}
       run: ${{ github.action_path }}/run-github-opencode.sh
