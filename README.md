@@ -26,7 +26,7 @@ Use this when you want the shortest consumer workflow for `opencode github run`.
 | Input | Default | Description |
 | --- | --- | --- |
 | `model` | empty | Exported as `MODEL` before `opencode github run` |
-| `prompt` | empty | Exported as `PROMPT` before `opencode github run` |
+| `prompt` | built-in PR review template | Exported as `PROMPT` before `opencode github run` |
 | `github-token` | empty | Exported as `GITHUB_TOKEN` before `opencode github run` |
 | `zhipu-api-key` | empty | Exported as `ZHIPU_API_KEY` before `opencode github run` |
 | `opencode-go-api-key` | empty | Exported as `OPENCODE_GO_API_KEY` before `opencode github run` |
