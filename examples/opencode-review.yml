@@ -20,21 +20,8 @@ jobs:
           ref: ${{ github.event.pull_request.head.ref }}
 
       - name: Run OpenCode review
-        uses: Svtter/opencode-actions/github-run-opencode@v1
+        uses: Svtter/opencode-actions/review@v1
         with:
-          model: zhipuai-coding-plan/glm-5.1
-          prompt: |
-            Review this pull request (read-only mode, DO NOT modify any code):
-
-            Please check:
-            - Code quality issues
-            - Potential bugs or logic errors
-            - Code style consistency
-            - Security concerns
-            - Performance issues
-            - Suggest improvements
-
-            Please respond in Chinese. DO NOT modify any code, only provide review comments.
           github-token: ${{ secrets.GITHUB_TOKEN }}
           zhipu-api-key: ${{ secrets.ZHIPU_API_KEY }}
           opencode-go-api-key: ${{ secrets.OPENCODE_GO_API_KEY }}

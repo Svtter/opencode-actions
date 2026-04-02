@@ -1,0 +1,175 @@
+name: OpenCode Review
+description: Opinionated review wrapper with built-in defaults for `opencode github run`.
+
+inputs:
+  install-url:
+    description: Installer URL used to bootstrap OpenCode.
+    required: false
+    default: https://opencode.ai/install
+  install-dir:
+    description: Directory where the opencode binary should be installed.
+    required: false
+    default: ""
+  xdg-cache-home:
+    description: Dedicated XDG cache directory for OpenCode.
+    required: false
+    default: ""
+  cache:
+    description: Cache the install and XDG cache directories with actions/cache.
+    required: false
+    default: "true"
+  cache-key:
+    description: Cache key suffix used to invalidate installer-based caches.
+    required: false
+    default: v1
+  install-attempts:
+    description: Number of installer retry attempts.
+    required: false
+    default: "3"
+  allow-preinstalled:
+    description: Reuse an existing opencode found on PATH instead of forcing installer bootstrap.
+    required: false
+    default: "false"
+  working-directory:
+    description: Optional working directory before running opencode.
+    required: false
+    default: ""
+  attempts:
+    description: Total number of attempts before failing.
+    required: false
+    default: "3"
+  retry-profile:
+    description: Built-in retry profile, defaults to github-network for common GitHub usage.
+    required: false
+    default: github-network
+  retry-on-regex:
+    description: Retry only when stderr or stdout matches this regex.
+    required: false
+    default: ""
+  retry-delay-seconds:
+    description: Base delay between retries in seconds.
+    required: false
+    default: "15"
+  model:
+    description: Value exported as MODEL before running `opencode github run`.
+    required: false
+    default: zhipuai-coding-plan/glm-5
+  prompt:
+    description: Value exported as PROMPT before running `opencode github run`.
+    required: false
+    default: |
+      Review this pull request (read-only mode, DO NOT modify any code):
+
+      Please check:
+      - Code quality issues
+      - Potential bugs or logic errors
+      - Code style consistency
+      - Security concerns
+      - Performance issues
+      - Suggest improvements
+
+      Please respond in Chinese. DO NOT modify any code, only provide review comments.
+      The first line of your response must be exactly one of:
+      - 可合并
+      - 有条件合并
+      - 不可合并
+
+      Decision rules:
+      - Use "可合并" only when there are no blocking issues.
+      - Use "有条件合并" when merge is acceptable only after specific issues are fixed.
+      - Use "不可合并" when there are blocking risks, correctness issues, or major concerns that should stop the merge.
+
+      Output format:
+      - First line: the decision only
+      - Then a short summary
+      - Then "阻塞项" listing required fixes for merge; if none, write "阻塞项：无"
+      - Then "建议项" listing non-blocking improvements; if none, write "建议项：无"
+  use-github-token:
+    description: Value exported as USE_GITHUB_TOKEN before running `opencode github run`.
+    required: false
+    default: "true"
+  github-token:
+    description: Value exported as GITHUB_TOKEN before running `opencode github run`.
+    required: false
+    default: ""
+  zhipu-api-key:
+    description: Value exported as ZHIPU_API_KEY before running `opencode github run`.
+    required: false
+    default: ""
+  opencode-go-api-key:
+    description: Value exported as OPENCODE_GO_API_KEY before running `opencode github run`.
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - if: ${{ runner.os != 'Linux' }}
+      shell: bash
+      run: |
+        set -euo pipefail
+        printf 'review currently supports Linux runners only\n' >&2
+        exit 1
+
+    - id: paths
+      shell: bash
+      env:
+        INPUT_INSTALL_DIR: ${{ inputs.install-dir }}
+        INPUT_XDG_CACHE_HOME: ${{ inputs.xdg-cache-home }}
+      run: |
+        set -euo pipefail
+        install_dir="$INPUT_INSTALL_DIR"
+        xdg_cache_home="$INPUT_XDG_CACHE_HOME"
+
+        if [[ -z "$install_dir" ]]; then
+          install_dir="${RUNNER_TOOL_CACHE:-$HOME/.cache}/opencode/bin"
+        fi
+
+        if [[ -z "$xdg_cache_home" ]]; then
+          xdg_cache_home="${RUNNER_TOOL_CACHE:-$HOME/.cache}/opencode/cache"
+        fi
+
+        printf 'install_dir=%s\n' "$install_dir" >>"$GITHUB_OUTPUT"
+        printf 'xdg_cache_home=%s\n' "$xdg_cache_home" >>"$GITHUB_OUTPUT"
+
+    - id: key
+      shell: bash
+      env:
+        INPUT_INSTALL_URL: ${{ inputs.install-url }}
+      run: |
+        set -euo pipefail
+        install_url_hash="$(printf '%s' "$INPUT_INSTALL_URL" | sha256sum | cut -d' ' -f1)"
+        printf 'install_url_hash=%s\n' "$install_url_hash" >>"$GITHUB_OUTPUT"
+
+    - id: cache
+      if: ${{ inputs.cache == 'true' }}
+      uses: actions/cache@v5
+      with:
+        path: |
+          ${{ steps.paths.outputs.install_dir }}
+          ${{ steps.paths.outputs.xdg_cache_home }}
+        key: review-opencode-${{ runner.os }}-${{ runner.arch }}-${{ steps.key.outputs.install_url_hash }}-${{ inputs.cache-key }}
+
+    - shell: bash
+      env:
+        OPENCODE_INSTALL_DIR: ${{ steps.paths.outputs.install_dir }}
+        XDG_CACHE_HOME: ${{ steps.paths.outputs.xdg_cache_home }}
+        OPENCODE_INSTALL_URL: ${{ inputs.install-url }}
+        OPENCODE_INSTALL_ATTEMPTS: ${{ inputs.install-attempts }}
+        OPENCODE_ALLOW_PREINSTALLED: ${{ inputs.allow-preinstalled }}
+      run: ${{ github.action_path }}/../setup-opencode/install-opencode.sh
+
+    - shell: bash
+      env:
+        GITHUB_RUN_OPENCODE_WORKING_DIRECTORY: ${{ inputs.working-directory }}
+        GITHUB_RUN_OPENCODE_ATTEMPTS: ${{ inputs.attempts }}
+        GITHUB_RUN_OPENCODE_RETRY_PROFILE: ${{ inputs.retry-profile }}
+        GITHUB_RUN_OPENCODE_RETRY_ON_REGEX: ${{ inputs.retry-on-regex }}
+        GITHUB_RUN_OPENCODE_RETRY_DELAY_SECONDS: ${{ inputs.retry-delay-seconds }}
+        GITHUB_RUN_OPENCODE_MODEL: ${{ inputs.model }}
+        GITHUB_RUN_OPENCODE_PROMPT: ${{ inputs.prompt }}
+        GITHUB_RUN_OPENCODE_USE_GITHUB_TOKEN: ${{ inputs.use-github-token }}
+        GITHUB_RUN_OPENCODE_GITHUB_TOKEN: ${{ inputs.github-token }}
+        GITHUB_RUN_OPENCODE_ZHIPU_API_KEY: ${{ inputs.zhipu-api-key }}
+        GITHUB_RUN_OPENCODE_OPENCODE_GO_API_KEY: ${{ inputs.opencode-go-api-key }}
+      run: ${{ github.action_path }}/../github-run-opencode/run-github-opencode.sh

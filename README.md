@@ -6,6 +6,7 @@ This repository is licensed under Apache 2.0.
 
 ## What it includes
 
+- `review`: opinionated PR review wrapper with built-in prompt and model defaults
 - `github-run-opencode`: one-step wrapper for the common `opencode github run` workflow
 - `setup-opencode`: installs OpenCode, restores a dedicated cache, and exports the binary path
 - `run-opencode`: runs `opencode` with optional retry logic for flaky GitHub network failures
@@ -36,6 +37,14 @@ Use this when you want the shortest consumer workflow for `opencode github run`.
 | `working-directory` | empty | Optional working directory before running OpenCode |
 
 `github-run-opencode` also accepts the setup-related inputs from `setup-opencode`, such as `cache`, `cache-key`, `install-attempts`, `install-url`, and `allow-preinstalled`.
+
+## review
+
+Use this when you want the simplest PR review setup.
+
+- built-in `prompt` review template (same as `github-run-opencode`)
+- built-in `model` default: `zhipuai-coding-plan/glm-5`
+- still allows overriding any input when needed
 
 ## setup-opencode
 
@@ -85,6 +94,7 @@ In the common same-job case, `setup-opencode` already exports `opencode` to `PAT
 Public consumers should reference the subdirectory action path:
 
 ```yaml
+uses: Svtter/opencode-actions/review@v1
 uses: Svtter/opencode-actions/github-run-opencode@v1
 uses: Svtter/opencode-actions/setup-opencode@v1
 uses: Svtter/opencode-actions/run-opencode@v1
@@ -92,11 +102,8 @@ uses: Svtter/opencode-actions/run-opencode@v1
 
 ```yaml
 - name: Run OpenCode review
-  uses: Svtter/opencode-actions/github-run-opencode@v1
+  uses: Svtter/opencode-actions/review@v1
   with:
-    model: zhipuai-coding-plan/glm-5.1
-    prompt: |
-      Review this pull request (read-only mode, DO NOT modify any code):
     github-token: ${{ secrets.GITHUB_TOKEN }}
     zhipu-api-key: ${{ secrets.ZHIPU_API_KEY }}
     opencode-go-api-key: ${{ secrets.OPENCODE_GO_API_KEY }}
@@ -122,7 +129,7 @@ This repository includes a CI workflow that:
 
 - runs `shellcheck` on every bundled shell script
 - runs the local shell-based regression suite
-- smoke-tests all three actions through `uses: ./setup-opencode`, `uses: ./run-opencode`, and `uses: ./github-run-opencode`
+- smoke-tests all four actions through `uses: ./setup-opencode`, `uses: ./run-opencode`, `uses: ./github-run-opencode`, and `uses: ./review`
 
 ## Release Policy
 
@@ -137,7 +144,7 @@ This repository includes a CI workflow that:
 2. Verify `CI` passes on `main`.
 3. Create a GitHub release with a semver tag such as `v1.0.0`.
 4. Confirm the `Update Major Tag` workflow moved `v1` to that release.
-5. Use `owner/repo/github-run-opencode@v1` for the shortest path, or `owner/repo/setup-opencode@v1` plus `owner/repo/run-opencode@v1` for more control.
+5. Use `owner/repo/review@v1` for the simplest review setup, `owner/repo/github-run-opencode@v1` for generic `github run`, or `owner/repo/setup-opencode@v1` plus `owner/repo/run-opencode@v1` for more control.
 
 The initial release-notes template lives at `docs/releases/v1.0.0.md`.
 

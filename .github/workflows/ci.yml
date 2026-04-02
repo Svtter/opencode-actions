@@ -28,6 +28,7 @@ jobs:
           shellcheck tests/setup-opencode.sh
           shellcheck tests/run-opencode.sh
           shellcheck tests/github-run-opencode.sh
+          shellcheck tests/review-action.sh
           shellcheck tests/test.sh
           shellcheck tests/fixtures/fake-installer.sh
 
@@ -69,6 +70,16 @@ jobs:
           attempts: 1
           model: ci-wrapper
           prompt: smoke prompt
+          github-token: smoke-gh-token
+          zhipu-api-key: smoke-zhipu-token
+
+      - name: Run review convenience action
+        uses: ./review
+        with:
+          install-url: http://127.0.0.1:8765/fake-installer.sh
+          cache: false
+          install-attempts: 1
+          attempts: 1
           github-token: smoke-gh-token
           zhipu-api-key: smoke-zhipu-token
 
