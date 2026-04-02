@@ -4,6 +4,23 @@ Reusable GitHub Actions for installing and running OpenCode in other repositorie
 
 This repository is licensed under Apache 2.0.
 
+## TLDR
+
+Write this in your CI.yaml
+
+```yaml
+- name: Run OpenCode review
+  uses: Svtter/opencode-actions/review@v1
+  with:
+    github-token: ${{ secrets.GITHUB_TOKEN }}
+
+    # only one is enough.
+    zhipu-api-key: ${{ secrets.ZHIPU_API_KEY }}
+    opencode-go-api-key: ${{ secrets.OPENCODE_GO_API_KEY }}
+```
+
+You'll get a automatic reviewer in Chinese.
+
 ## What it includes
 
 - `review`: opinionated PR review wrapper with built-in prompt and model defaults
