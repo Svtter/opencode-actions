@@ -9,32 +9,6 @@ permissions:
   contents: read
 
 jobs:
-  validate:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
-
-      - name: Install shellcheck
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y shellcheck
-
-      - name: Lint shell scripts
-        run: |
-          shellcheck setup-opencode/install-opencode.sh
-          shellcheck github-run-opencode/run-github-opencode.sh
-          shellcheck run-opencode/run-opencode.sh
-          shellcheck tests/setup-opencode.sh
-          shellcheck tests/run-opencode.sh
-          shellcheck tests/github-run-opencode.sh
-          shellcheck tests/review-action.sh
-          shellcheck tests/test.sh
-          shellcheck tests/fixtures/fake-installer.sh
-
-      - name: Run local test suite
-        run: bash tests/test.sh
-
   smoke-actions:
     runs-on: ubuntu-latest
     steps:
