@@ -76,7 +76,6 @@ while [[ "$attempt" -le "$OPENCODE_INSTALL_ATTEMPTS" ]]; do
     --show-error \
     --location \
     --retry 5 \
-    --retry-all-errors \
     --retry-delay 2 \
     "$OPENCODE_INSTALL_URL" | bash; then
     break
