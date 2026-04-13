@@ -97,7 +97,7 @@ inputs:
     required: false
     default: ""
   opencode-go-api-key:
-    description: Value exported as OPENCODE_GO_API_KEY before running `opencode github run`.
+    description: API key for the opencode-go provider. Injected into the OpenCode auth store before running, since OpenCode does not discover this provider from environment variables.
     required: false
     default: ""
 

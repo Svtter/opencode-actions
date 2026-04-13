@@ -88,4 +88,23 @@ if [[ "$output" != *"OPENCODE_GO_API_KEY=go-token"* ]]; then
   exit 1
 fi
 
+xdg_data_home="${XDG_DATA_HOME:-$HOME/.local/share}"
+auth_file="$xdg_data_home/opencode/auth.json"
+
+if [[ ! -f "$auth_file" ]]; then
+  printf 'expected auth.json to be created, but file does not exist: %s\n' "$auth_file" >&2
+  exit 1
+fi
+
+auth_opencode_go_key="$(python3 -c "
+import json, sys
+data = json.load(open(sys.argv[1]))
+print(data.get('opencode-go', {}).get('key', ''))
+" "$auth_file")"
+
+if [[ "$auth_opencode_go_key" != "go-token" ]]; then
+  printf 'expected opencode-go key in auth.json to be "go-token", got: %s\n' "$auth_opencode_go_key" >&2
+  exit 1
+fi
+
 printf 'github-run-opencode test passed\n'
