@@ -79,6 +79,11 @@ inputs:
       - Use "有条件合并" when merge is acceptable only after specific issues are fixed.
       - Use "不可合并" when there are blocking risks, correctness issues, or major concerns that should stop the merge.
 
+      Output format:
+      - First line: the decision only
+      - Then a short summary
+      - Then "阻塞项" listing required fixes for merge; if none, write "阻塞项：无"
+      - Then "建议项" listing non-blocking improvements; if none, write "建议项：无"
   use-github-token:
     description: Value exported as USE_GITHUB_TOKEN before running `opencode github run`.
     required: false
