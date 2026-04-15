@@ -11,6 +11,8 @@ permissions:
 jobs:
   smoke-actions:
     runs-on: ubuntu-latest
+    env:
+      FAKE_OPENCODE_VERSION: 1.4.6
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
