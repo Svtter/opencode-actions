@@ -239,4 +239,98 @@ if [[ "$no_check_version" != "0.1.0" ]]; then
   exit 1
 fi
 
+case_nine="$server_root/case-nine"
+mkdir -p "$case_nine/bin"
+cat >"$case_nine/bin/opencode" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+if [[ "${1:-}" == "--version" ]]; then
+  printf '1.5.0-beta.1\n'
+  exit 0
+fi
+printf 'fake opencode %s\n' "$*"
+EOF
+chmod +x "$case_nine/bin/opencode"
+
+export FAKE_OPENCODE_VERSION="1.5.0"
+export FAKE_INSTALL_TARGET="install-dir"
+export OPENCODE_ALLOW_PREINSTALLED="false"
+export OPENCODE_MIN_VERSION="1.5.0"
+run_install_case "$case_nine"
+
+prerelease_upgraded_version="$("$case_nine/bin/opencode" --version)"
+if [[ "$prerelease_upgraded_version" != "$FAKE_OPENCODE_VERSION" ]]; then
+  printf 'expected prerelease cached version to upgrade to %s, got %s\n' "$FAKE_OPENCODE_VERSION" "$prerelease_upgraded_version" >&2
+  exit 1
+fi
+
+case_ten="$server_root/case-ten"
+mkdir -p "$case_ten/bin"
+cat >"$case_ten/bin/opencode" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+if [[ "${1:-}" == "--version" ]]; then
+  printf '1.5.0\n'
+  exit 0
+fi
+printf 'fake opencode %s\n' "$*"
+EOF
+chmod +x "$case_ten/bin/opencode"
+
+export FAKE_OPENCODE_VERSION="1.5.0"
+export FAKE_INSTALL_TARGET="install-dir"
+export OPENCODE_ALLOW_PREINSTALLED="false"
+export OPENCODE_MIN_VERSION="not-a-semver"
+if run_install_case "$case_ten" >/dev/null 2>&1; then
+  printf 'expected invalid minimum version to fail validation\n' >&2
+  exit 1
+fi
+
+case_eleven="$server_root/case-eleven"
+mkdir -p "$case_eleven/path"
+cat >"$case_eleven/path/opencode" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+if [[ "${1:-}" == "--version" ]]; then
+  printf '1.0.0\n'
+  exit 0
+fi
+printf 'fake opencode %s\n' "$*"
+EOF
+chmod +x "$case_eleven/path/opencode"
+
+export FAKE_OPENCODE_VERSION="1.6.0"
+export FAKE_INSTALL_TARGET="install-dir"
+export OPENCODE_ALLOW_PREINSTALLED="true"
+export OPENCODE_MIN_VERSION="1.5.0"
+run_install_case "$case_eleven"
+
+preinstalled_upgraded_version="$("$case_eleven/bin/opencode" --version)"
+if [[ "$preinstalled_upgraded_version" != "$FAKE_OPENCODE_VERSION" ]]; then
+  printf 'expected outdated preinstalled version to upgrade to %s, got %s\n' "$FAKE_OPENCODE_VERSION" "$preinstalled_upgraded_version" >&2
+  exit 1
+fi
+
+case_twelve="$server_root/case-twelve"
+mkdir -p "$case_twelve/bin"
+cat >"$case_twelve/bin/opencode" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+if [[ "${1:-}" == "--version" ]]; then
+  printf '1.0.0\n'
+  exit 0
+fi
+printf 'fake opencode %s\n' "$*"
+EOF
+chmod +x "$case_twelve/bin/opencode"
+
+export FAKE_OPENCODE_VERSION="1.4.9"
+export FAKE_INSTALL_TARGET="install-dir"
+export OPENCODE_ALLOW_PREINSTALLED="false"
+export OPENCODE_MIN_VERSION="1.5.0"
+if run_install_case "$case_twelve" >/dev/null 2>&1; then
+  printf 'expected install result below minimum version to fail validation\n' >&2
+  exit 1
+fi
+
 printf 'setup-opencode test passed\n'
