@@ -107,7 +107,7 @@ if [[ "$OPENCODE_ALLOW_PREINSTALLED" == "true" ]] && command -v opencode >/dev/n
     if version_meets_minimum "$(opencode --version)"; then
       exit 0
     fi
-    printf 'preinstalled version below minimum %s, reinstalling\n' "$OPENCODE_MIN_VERSION" >&2
+    printf 'preinstalled version below minimum %s, falling through to installer\n' "$OPENCODE_MIN_VERSION" >&2
     rm -f "$OPENCODE_INSTALL_DIR/opencode"
     hash -r
   fi

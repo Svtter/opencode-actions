@@ -213,4 +213,29 @@ if [[ "$cached_version" != "2.0.0" ]]; then
   exit 1
 fi
 
+case_eight="$server_root/case-eight"
+mkdir -p "$case_eight/bin"
+cat >"$case_eight/bin/opencode" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+if [[ "${1:-}" == "--version" ]]; then
+  printf '0.1.0\n'
+  exit 0
+fi
+printf 'fake opencode %s\n' "$*"
+EOF
+chmod +x "$case_eight/bin/opencode"
+
+export FAKE_OPENCODE_VERSION="should-not-install"
+export FAKE_INSTALL_TARGET="install-dir"
+export OPENCODE_ALLOW_PREINSTALLED="false"
+export OPENCODE_MIN_VERSION=""
+run_install_case "$case_eight"
+
+no_check_version="$("$case_eight/bin/opencode" --version)"
+if [[ "$no_check_version" != "0.1.0" ]]; then
+  printf 'expected cached version 0.1.0 (version check disabled), got %s\n' "$no_check_version" >&2
+  exit 1
+fi
+
 printf 'setup-opencode test passed\n'
