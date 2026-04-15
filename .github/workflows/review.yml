@@ -22,7 +22,7 @@ jobs:
       - name: Run OpenCode review
         uses: Svtter/opencode-actions/review@v1
         with:
-          model: opencode-go/minimax-m2.7
+          model: ${{ vars.MODEL_NAME }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           zhipu-api-key: ${{ secrets.ZHIPU_API_KEY }}
           opencode-go-api-key: ${{ secrets.OPENCODE_GO_API_KEY }}
