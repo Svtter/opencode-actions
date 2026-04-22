@@ -48,6 +48,8 @@ jobs:
           prompt: smoke prompt
           github-token: smoke-gh-token
           zhipu-api-key: smoke-zhipu-token
+        env:
+          FAKE_OPENCODE_VERSION: 1.14.20
 
       - name: Run review convenience action
         uses: ./review
