@@ -65,37 +65,7 @@ inputs:
   prompt:
     description: Value exported as PROMPT before running `opencode github run`.
     required: false
-    default: |
-      Review this pull request (read-only mode, DO NOT modify any code):
-
-      Please check:
-      - Code quality issues
-      - Potential bugs or logic errors
-      - Code style consistency
-      - Security concerns
-      - Performance issues
-      - Suggest improvements
-
-      Please respond in Chinese. DO NOT modify any code, only provide review comments.
-      The first line of your response must be exactly one of:
-      - 可合并
-      - 有条件合并
-      - 不可合并
-
-      Decision rules:
-      - Use "可合并" only when there are no blocking issues.
-      - Use "有条件合并" when merge is acceptable only after specific issues are fixed.
-      - Use "不可合并" when there are blocking risks, correctness issues, or major concerns that should stop the merge.
-
-      Review the latest PR HEAD only.
-      Do not repeat issues from earlier revisions unless they are still reproducible in the current files.
-      Verify any blocking claim against the current code and current CI status before listing it.
-
-      Output format:
-      - First line: the decision only
-      - Then a short summary
-      - Then "阻塞项" listing required fixes for merge; if none, write "阻塞项：无"
-      - Then "建议项" listing non-blocking improvements; if none, write "建议项：无"
+    default: ""
   use-github-token:
     description: Value exported as USE_GITHUB_TOKEN before running `opencode github run`.
     required: false
