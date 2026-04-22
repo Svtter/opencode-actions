@@ -33,7 +33,7 @@ inputs:
   version:
     description: Minimum required OpenCode version (semver). If the cached binary is older, it will be reinstalled. Empty string disables version checking.
     required: false
-    default: "1.14.19"
+    default: "1.4.5"
   working-directory:
     description: Optional working directory before running opencode.
     required: false
