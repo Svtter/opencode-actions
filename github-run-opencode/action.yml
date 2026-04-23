@@ -33,7 +33,7 @@ inputs:
   version:
     description: Minimum required OpenCode version (semver). If the cached binary is older, it will be reinstalled. Empty string disables version checking.
     required: false
-    default: "1.14.20"
+    default: ""
   working-directory:
     description: Optional working directory before running opencode.
     required: false
@@ -93,6 +93,16 @@ runs:
         printf 'github-run-opencode currently supports Linux runners only\n' >&2
         exit 1
 
+    - id: version
+      shell: bash
+      run: |
+        set -euo pipefail
+        effective="${{ inputs.version }}"
+        if [[ -z "$effective" ]]; then
+          effective="$(cat "${{ github.action_path }}/../setup-opencode/default-version")"
+        fi
+        printf 'version=%s\n' "$effective" >>"$GITHUB_OUTPUT"
+
     - id: paths
       shell: bash
       env:
@@ -130,7 +140,7 @@ runs:
         path: |
           ${{ steps.paths.outputs.install_dir }}
           ${{ steps.paths.outputs.xdg_cache_home }}
-        key: github-run-opencode-${{ runner.os }}-${{ runner.arch }}-${{ steps.key.outputs.install_url_hash }}-${{ inputs.version }}-${{ inputs.cache-key }}
+        key: github-run-opencode-${{ runner.os }}-${{ runner.arch }}-${{ steps.key.outputs.install_url_hash }}-${{ steps.version.outputs.version }}-${{ inputs.cache-key }}
 
     - shell: bash
       env:
@@ -139,7 +149,7 @@ runs:
         OPENCODE_INSTALL_URL: ${{ inputs.install-url }}
         OPENCODE_INSTALL_ATTEMPTS: ${{ inputs.install-attempts }}
         OPENCODE_ALLOW_PREINSTALLED: ${{ inputs.allow-preinstalled }}
-        OPENCODE_MIN_VERSION: ${{ inputs.version }}
+        OPENCODE_MIN_VERSION: ${{ steps.version.outputs.version }}
       run: ${{ github.action_path }}/../setup-opencode/install-opencode.sh
 
     - shell: bash
