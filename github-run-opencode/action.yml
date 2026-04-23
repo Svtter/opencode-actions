@@ -106,7 +106,11 @@ runs:
             printf 'error: default-version file not found at %s\n' "$default_file" >&2
             exit 1
           fi
-          effective="$(cat "$default_file")"
+          effective="$(tr -d '[:space:]' < "$default_file")"
+          if [[ ! "$effective" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            printf 'error: invalid version in %s: %s\n' "$default_file" "$(cat "$default_file")" >&2
+            exit 1
+          fi
         fi
         printf 'version=%s\n' "$effective" >>"$GITHUB_OUTPUT"
 
