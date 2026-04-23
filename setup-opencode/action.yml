@@ -31,7 +31,7 @@ inputs:
     required: false
     default: "false"
   version:
-    description: Minimum required OpenCode version (semver). If the cached binary is older, it will be reinstalled. Empty string disables version checking.
+    description: Minimum required OpenCode version (semver). If the cached binary is older, it will be reinstalled. Defaults to the version in setup-opencode/default-version. Use "none" to disable version checking.
     required: false
     default: ""
 
@@ -67,8 +67,15 @@ runs:
       run: |
         set -euo pipefail
         effective="${{ inputs.version }}"
-        if [[ -z "$effective" ]]; then
-          effective="$(cat "${{ github.action_path }}/default-version")"
+        if [[ "$effective" == "none" ]]; then
+          effective=""
+        elif [[ -z "$effective" ]]; then
+          default_file="${{ github.action_path }}/default-version"
+          if [[ ! -f "$default_file" ]]; then
+            printf 'error: default-version file not found at %s\n' "$default_file" >&2
+            exit 1
+          fi
+          effective="$(cat "$default_file")"
         fi
         printf 'version=%s\n' "$effective" >>"$GITHUB_OUTPUT"
 
