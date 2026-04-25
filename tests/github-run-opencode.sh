@@ -58,51 +58,57 @@ EOF
 chmod +x "$fake_bin_dir/timeout"
 export PATH="$fake_bin_dir:$OPENCODE_INSTALL_DIR:/usr/bin:/bin"
 
-export GITHUB_RUN_OPENCODE_MODEL="wrapper-model"
-export GITHUB_RUN_OPENCODE_PROMPT="review prompt"
-export GITHUB_RUN_OPENCODE_USE_GITHUB_TOKEN="true"
-export GITHUB_RUN_OPENCODE_GITHUB_TOKEN="gh-token"
-export GITHUB_RUN_OPENCODE_ZHIPU_API_KEY="zhipu-token"
-export GITHUB_RUN_OPENCODE_OPENCODE_GO_API_KEY="go-token"
-export GITHUB_RUN_OPENCODE_ATTEMPTS="1"
-export GITHUB_RUN_OPENCODE_RETRY_PROFILE="github-network"
+reset_wrapper_env() {
+  unset GITHUB_RUN_OPENCODE_FALLBACK_MODELS
+  unset GITHUB_RUN_OPENCODE_MODEL_TIMEOUT_SECONDS
+  unset GITHUB_RUN_OPENCODE_FALLBACK_ON_REGEX
+  unset FAKE_OPENCODE_TIMEOUT_MODELS
+  unset FAKE_OPENCODE_TIMEOUT_SLEEP_SECONDS
+  unset FAKE_OPENCODE_ERROR_MODELS
 
+  export GITHUB_RUN_OPENCODE_MODEL="wrapper-model"
+  export GITHUB_RUN_OPENCODE_PROMPT="review prompt"
+  export GITHUB_RUN_OPENCODE_USE_GITHUB_TOKEN="true"
+  export GITHUB_RUN_OPENCODE_GITHUB_TOKEN="gh-token"
+  export GITHUB_RUN_OPENCODE_ZHIPU_API_KEY="zhipu-token"
+  export GITHUB_RUN_OPENCODE_OPENCODE_GO_API_KEY="go-token"
+  export GITHUB_RUN_OPENCODE_ATTEMPTS="1"
+  export GITHUB_RUN_OPENCODE_RETRY_PROFILE="github-network"
+}
+
+assert_contains() {
+  local haystack="$1"
+  local needle="$2"
+  local message="$3"
+
+  if [[ "$haystack" != *"$needle"* ]]; then
+    printf '%s\n%s\n' "$message" "$haystack" >&2
+    exit 1
+  fi
+}
+
+reset_wrapper_env
 output="$("$repo_root/github-run-opencode/run-github-opencode.sh" 2>&1)"
 
-if [[ "$output" != *"fake opencode github run"* ]]; then
-  printf 'expected github run invocation, got:\n%s\n' "$output" >&2
-  exit 1
-fi
+assert_contains "$output" "fake opencode github run" "expected github run invocation, got:"
+assert_contains "$output" "MODEL=wrapper-model" "expected model env in output, got:"
+assert_contains "$output" "PROMPT=review prompt" "expected prompt env in output, got:"
+assert_contains "$output" "USE_GITHUB_TOKEN=true" "expected USE_GITHUB_TOKEN env in output, got:"
+assert_contains "$output" "GITHUB_TOKEN=gh-token" "expected GITHUB_TOKEN env in output, got:"
+assert_contains "$output" "ZHIPU_API_KEY=zhipu-token" "expected ZHIPU_API_KEY env in output, got:"
+assert_contains "$output" "OPENCODE_API_KEY=go-token" "expected OPENCODE_API_KEY env in output, got:"
 
-if [[ "$output" != *"MODEL=wrapper-model"* ]]; then
-  printf 'expected model env in output, got:\n%s\n' "$output" >&2
-  exit 1
-fi
+reset_wrapper_env
+export GITHUB_RUN_OPENCODE_MODEL="zhipuai-coding-plan/glm-5"
+export GITHUB_RUN_OPENCODE_FALLBACK_MODELS="opencode-go/gemini-2.5-pro"
+export GITHUB_RUN_OPENCODE_MODEL_TIMEOUT_SECONDS="1"
+export FAKE_OPENCODE_TIMEOUT_MODELS="zhipuai-coding-plan/glm-5"
+export FAKE_OPENCODE_TIMEOUT_SLEEP_SECONDS="2"
 
-if [[ "$output" != *"PROMPT=review prompt"* ]]; then
-  printf 'expected prompt env in output, got:\n%s\n' "$output" >&2
-  exit 1
-fi
+fallback_output="$("$repo_root/github-run-opencode/run-github-opencode.sh" 2>&1)"
 
-if [[ "$output" != *"USE_GITHUB_TOKEN=true"* ]]; then
-  printf 'expected USE_GITHUB_TOKEN env in output, got:\n%s\n' "$output" >&2
-  exit 1
-fi
-
-if [[ "$output" != *"GITHUB_TOKEN=gh-token"* ]]; then
-  printf 'expected GITHUB_TOKEN env in output, got:\n%s\n' "$output" >&2
-  exit 1
-fi
-
-if [[ "$output" != *"ZHIPU_API_KEY=zhipu-token"* ]]; then
-  printf 'expected ZHIPU_API_KEY env in output, got:\n%s\n' "$output" >&2
-  exit 1
-fi
-
-if [[ "$output" != *"OPENCODE_API_KEY=go-token"* ]]; then
-  printf 'expected OPENCODE_API_KEY env in output, got:\n%s\n' "$output" >&2
-  exit 1
-fi
+assert_contains "$fallback_output" "MODEL=opencode-go/gemini-2.5-pro" "expected fallback model to be used after timeout, got:"
+assert_contains "$fallback_output" "OpenCode model zhipuai-coding-plan/glm-5 timed out" "expected timeout log before fallback, got:"
 
 if [[ "$output" != *"TIMEOUT_DURATION=600s"* ]]; then
   printf 'expected default timeout duration of 600s, got:\n%s\n' "$output" >&2
