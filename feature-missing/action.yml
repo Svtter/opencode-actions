@@ -166,7 +166,7 @@ runs:
         path: |
           ${{ steps.paths.outputs.install_dir }}
           ${{ steps.paths.outputs.xdg_cache_home }}
-        key: review-opencode-${{ runner.os }}-${{ runner.arch }}-${{ steps.key.outputs.install_url_hash }}-${{ inputs.version }}-${{ inputs.cache-key }}
+        key: opencode-${{ runner.os }}-${{ runner.arch }}-${{ steps.key.outputs.install_url_hash }}-${{ inputs.version }}-${{ inputs.cache-key }}
 
     - shell: bash
       env:
