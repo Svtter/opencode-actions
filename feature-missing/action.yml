@@ -69,7 +69,7 @@ inputs:
       Audit this pull request for missing feature implementation (read-only mode, DO NOT modify any code).
 
       Steps:
-      1. Run `gh pr view <PR_NUMBER> --json closingIssuesReferences,title,body` to find linked issues.
+      1. Run `gh pr view --json closingIssuesReferences,title,body` to find linked issues (opencode github run already provides the PR context, just run the command without a PR number).
       2. If there are linked issues, read each issue body as the feature spec (use `gh issue view`).
       3. If no linked issues, extract the requirements from the PR title and body itself.
       4. Read the PR's changed files to understand what was actually implemented.
@@ -166,7 +166,7 @@ runs:
         path: |
           ${{ steps.paths.outputs.install_dir }}
           ${{ steps.paths.outputs.xdg_cache_home }}
-        key: feature-missing-opencode-${{ runner.os }}-${{ runner.arch }}-${{ steps.key.outputs.install_url_hash }}-${{ inputs.version }}-${{ inputs.cache-key }}
+        key: review-opencode-${{ runner.os }}-${{ runner.arch }}-${{ steps.key.outputs.install_url_hash }}-${{ inputs.version }}-${{ inputs.cache-key }}
 
     - shell: bash
       env:
