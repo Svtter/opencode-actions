@@ -24,6 +24,7 @@ You'll get a automatic reviewer in Chinese.
 ## What it includes
 
 - `review`: opinionated PR review wrapper with built-in prompt and model defaults
+- `feature-missing`: audits PR implementation against linked issue spec to find missing features
 - `github-run-opencode`: one-step wrapper for the common `opencode github run` workflow
 - `setup-opencode`: installs OpenCode, restores a dedicated cache, and exports the binary path
 - `run-opencode`: runs `opencode` with optional retry logic for flaky GitHub network failures
@@ -64,6 +65,24 @@ Use this when you want the simplest PR review setup.
 - built-in `MODEL` resolution: explicit `model` input, else `MODEL_NAME`, else `zhipuai-coding-plan/glm-5.1`
 - built-in `timeout-seconds` default: `600` (10 minutes)
 - still allows overriding any input when needed
+
+## feature-missing
+
+Use this alongside `review` to audit whether a PR's implementation covers all requirements from the linked issue spec.
+
+- automatically reads the linked issue body as the feature spec via `gh pr view`
+- if no linked issue, extracts requirements from the PR title and body
+- classifies gaps by severity: CRITICAL, MEDIUM, LOW
+- shares the same inputs and cache as `review`/`github-run-opencode`
+
+```yaml
+- name: Run feature missing audit
+  uses: Svtter/opencode-actions/feature-missing@v1
+  with:
+    github-token: ${{ secrets.GITHUB_TOKEN }}
+    zhipu-api-key: ${{ secrets.ZHIPU_API_KEY }}
+    opencode-go-api-key: ${{ secrets.OPENCODE_GO_API_KEY }}
+```
 
 ## setup-opencode
 
@@ -114,6 +133,7 @@ Public consumers should reference the subdirectory action path:
 
 ```yaml
 uses: Svtter/opencode-actions/review@v1
+uses: Svtter/opencode-actions/feature-missing@v1
 uses: Svtter/opencode-actions/github-run-opencode@v1
 uses: Svtter/opencode-actions/setup-opencode@v1
 uses: Svtter/opencode-actions/run-opencode@v1
@@ -148,7 +168,7 @@ This repository includes a CI workflow that:
 
 - runs `shellcheck` on every bundled shell script
 - runs the local shell-based regression suite
-- smoke-tests all four actions through `uses: ./setup-opencode`, `uses: ./run-opencode`, `uses: ./github-run-opencode`, and `uses: ./review`
+- smoke-tests all four actions through `uses: ./setup-opencode`, `uses: ./run-opencode`, `uses: ./github-run-opencode`, `uses: ./review`, and `uses: ./feature-missing`
 
 ## Release Policy
 
@@ -163,7 +183,7 @@ This repository includes a CI workflow that:
 2. Verify `CI` passes on `main`.
 3. Create a GitHub release with a semver tag such as `v1.0.0`.
 4. Confirm the `Update Major Tag` workflow moved `v1` to that release.
-5. Use `owner/repo/review@v1` for the simplest review setup, `owner/repo/github-run-opencode@v1` for generic `github run`, or `owner/repo/setup-opencode@v1` plus `owner/repo/run-opencode@v1` for more control.
+5. Use `owner/repo/review@v1` for the simplest review setup, `owner/repo/feature-missing@v1` for spec coverage audit, `owner/repo/github-run-opencode@v1` for generic `github run`, or `owner/repo/setup-opencode@v1` plus `owner/repo/run-opencode@v1` for more control.
 
 The initial release-notes template lives at `docs/releases/v1.0.0.md`.
 
