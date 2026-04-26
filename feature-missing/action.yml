@@ -1,5 +1,5 @@
 name: OpenCode Feature Missing
-description: Post-merge style audit that compares PR changes against the linked issue spec to find implementation gaps.
+description: Compares PR implementation against the linked issue spec to find missing or incomplete features before merge.
 
 inputs:
   install-url:
