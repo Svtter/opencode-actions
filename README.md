@@ -89,7 +89,6 @@ Use this alongside `review` to audit whether a PR's implementation covers all re
     zhipu-api-key: ${{ secrets.ZHIPU_API_KEY }}
     opencode-go-api-key: ${{ secrets.OPENCODE_GO_API_KEY }}
 ```
->>>>>>> origin/main
 
 ## setup-opencode
 

@@ -5,6 +5,7 @@ import re
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 
 script_dir = Path(__file__).resolve().parent
@@ -20,7 +21,7 @@ def set_env(name: str, value: str) -> None:
 
 
 def require_non_negative_integer(value: str, name: str) -> int:
-    if not value.isdigit():
+    if not re.fullmatch(r"[0-9]+", value):
         print(f"{name} must be a non-negative integer, got {value}", file=sys.stderr)
         sys.exit(1)
     return int(value)
@@ -31,7 +32,7 @@ def supports_model_with_available_key(model: str) -> bool:
         return bool(os.environ.get("ZHIPU_API_KEY"))
     if model.startswith("opencode-go/"):
         return bool(os.environ.get("OPENCODE_API_KEY"))
-    if model.startswith("deepseek") and "/" in model:
+    if model.startswith("deepseek"):
         return bool(os.environ.get("DEEPSEEK_API_KEY"))
     return True
 
@@ -55,12 +56,12 @@ def parse_candidate_models(raw_list: str) -> list[str]:
     return result
 
 
-def run_model(model: str, log_file: str, model_timeout: int, run_script: Path) -> int:
+def run_model(model: str, log_file: str, effective_timeout: int, run_script: Path) -> int:
     env = os.environ.copy()
     env["MODEL"] = model
 
-    if model_timeout > 0:
-        cmd = ["timeout", "--foreground", f"{model_timeout}s", str(run_script)]
+    if effective_timeout > 0:
+        cmd = ["timeout", "--foreground", f"{effective_timeout}s", str(run_script)]
     else:
         cmd = [str(run_script)]
 
@@ -84,6 +85,28 @@ def run_single(run_script: Path, timeout_sec: int) -> int:
     else:
         result = subprocess.run([str(run_script)])
     return result.returncode
+
+
+def compute_effective_timeout(
+    model_timeout: int, global_timeout: int, start_time: float
+) -> int:
+    """Return the timeout to use for the next model attempt.
+
+    - If global_timeout == 0, use model_timeout (or 0 if that is also 0).
+    - If global_timeout > 0, cap by remaining global budget.
+    - If no budget left, return 0 (caller should treat as already exceeded).
+    """
+    if global_timeout > 0:
+        elapsed = time.time() - start_time
+        remaining = max(0, global_timeout - int(elapsed))
+        if remaining <= 0:
+            return 0
+        if model_timeout > 0:
+            return min(model_timeout, remaining)
+        return remaining
+    if model_timeout > 0:
+        return model_timeout
+    return 0
 
 
 def main() -> int:
@@ -168,13 +191,28 @@ def main() -> int:
         os.environ["MODEL"] = eligible_models[0]
         return run_single(run_script, timeout_seconds)
 
-    # Fallback loop
+    # Fallback loop with global timeout budget
+    start_time = time.time()
     for index, m in enumerate(eligible_models):
         fd, log_file = tempfile.mkstemp()
         os.close(fd)
         temp_files.append(log_file)
 
-        status = run_model(m, log_file, model_timeout_seconds, run_script)
+        effective_timeout = compute_effective_timeout(
+            model_timeout_seconds, timeout_seconds, start_time
+        )
+
+        if effective_timeout == 0 and timeout_seconds > 0:
+            print(
+                f"OpenCode model {m} skipped because global timeout of {timeout_seconds}s was exceeded",
+                file=sys.stderr,
+            )
+            is_last = index == len(eligible_models) - 1
+            if is_last:
+                return 124
+            continue
+
+        status = run_model(m, log_file, effective_timeout, run_script)
 
         if status == 0:
             return 0
@@ -183,7 +221,7 @@ def main() -> int:
 
         if status == 124:
             print(
-                f"OpenCode model {m} timed out after {model_timeout_seconds}s",
+                f"OpenCode model {m} timed out after {effective_timeout}s",
                 file=sys.stderr,
             )
             if is_last:

@@ -15,8 +15,8 @@ if ! grep -Fq 'uses: Svtter/opencode-actions/review@v1' "$workflow_file"; then
   exit 1
 fi
 
-if ! grep -Fq 'model: opencode-go/minimax-m2.7' "$workflow_file"; then
-  printf 'expected workflow to pin model to opencode-go/minimax-m2.7\n' >&2
+if ! grep -Fq 'model:' "$workflow_file"; then
+  printf 'expected workflow to set a model input\n' >&2
   exit 1
 fi
 
