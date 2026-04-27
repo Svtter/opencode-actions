@@ -93,7 +93,7 @@ assert_contains() {
 }
 
 reset_wrapper_env
-output="$("$repo_root/github-run-opencode/run-github-opencode.sh" 2>&1)"
+output="$(python3 "$repo_root/github-run-opencode/run-github-opencode.py" 2>&1)"
 
 assert_contains "$output" "fake opencode github run" "expected github run invocation, got:"
 assert_contains "$output" "MODEL=wrapper-model" "expected model env in output, got:"
@@ -106,7 +106,7 @@ assert_contains "$output" "TIMEOUT_DURATION=600s" "expected default global timeo
 
 reset_wrapper_env
 export GITHUB_RUN_OPENCODE_TIMEOUT_SECONDS="7"
-override_output="$("$repo_root/github-run-opencode/run-github-opencode.sh" 2>&1)"
+override_output="$(python3 "$repo_root/github-run-opencode/run-github-opencode.py" 2>&1)"
 
 assert_contains "$override_output" "TIMEOUT_DURATION=7s" "expected override global timeout of 7s, got:"
 
@@ -117,7 +117,7 @@ export GITHUB_RUN_OPENCODE_MODEL_TIMEOUT_SECONDS="1"
 export FAKE_OPENCODE_TIMEOUT_MODELS="zhipuai-coding-plan/glm-5"
 export FAKE_OPENCODE_TIMEOUT_SLEEP_SECONDS="2"
 
-fallback_output="$("$repo_root/github-run-opencode/run-github-opencode.sh" 2>&1)"
+fallback_output="$(python3 "$repo_root/github-run-opencode/run-github-opencode.py" 2>&1)"
 
 assert_contains "$fallback_output" "MODEL=opencode-go/gemini-2.5-pro" "expected fallback model to be used after timeout, got:"
 assert_contains "$fallback_output" "OpenCode model zhipuai-coding-plan/glm-5 timed out" "expected timeout log before fallback, got:"
@@ -126,14 +126,14 @@ reset_wrapper_env
 unset GITHUB_RUN_OPENCODE_MODEL
 export MODEL_NAME="env-model-name"
 
-output="$("$repo_root/github-run-opencode/run-github-opencode.sh" 2>&1)"
+output="$(python3 "$repo_root/github-run-opencode/run-github-opencode.py" 2>&1)"
 
 assert_contains "$output" "MODEL=env-model-name" "expected MODEL_NAME fallback in output, got:"
 
 reset_wrapper_env
 unset GITHUB_RUN_OPENCODE_MODEL
 
-output="$("$repo_root/github-run-opencode/run-github-opencode.sh" 2>&1)"
+output="$(python3 "$repo_root/github-run-opencode/run-github-opencode.py" 2>&1)"
 
 assert_contains "$output" "MODEL=zhipuai-coding-plan/glm-5.1" "expected built-in model fallback in output, got:"
 
