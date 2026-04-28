@@ -197,4 +197,9 @@ runs:
         GITHUB_RUN_OPENCODE_ZHIPU_API_KEY: ${{ inputs.zhipu-api-key }}
         GITHUB_RUN_OPENCODE_OPENCODE_GO_API_KEY: ${{ inputs.opencode-go-api-key }}
         GITHUB_RUN_OPENCODE_DEEPSEEK_API_KEY: ${{ inputs.deepseek-api-key }}
-      run: python3 ${{ github.action_path }}/run-github-opencode.py
+      run: |
+        if ! command -v python3 >/dev/null 2>&1; then
+          printf 'python3 is required but not installed on this runner\n' >&2
+          exit 1
+        fi
+        python3 ${{ github.action_path }}/run-github-opencode.py

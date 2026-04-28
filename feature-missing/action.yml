@@ -212,4 +212,9 @@ runs:
         GITHUB_RUN_OPENCODE_FALLBACK_MODELS: ${{ inputs.fallback-models }}
         GITHUB_RUN_OPENCODE_MODEL_TIMEOUT_SECONDS: ${{ inputs.model-timeout-seconds }}
         GITHUB_RUN_OPENCODE_FALLBACK_ON_REGEX: ${{ inputs.fallback-on-regex }}
-      run: python3 ${{ github.action_path }}/../github-run-opencode/run-github-opencode.py
+      run: |
+        if ! command -v python3 >/dev/null 2>&1; then
+          printf 'python3 is required but not installed on this runner\n' >&2
+          exit 1
+        fi
+        python3 ${{ github.action_path }}/../github-run-opencode/run-github-opencode.py

@@ -40,7 +40,7 @@ if [[ -n "${FAKE_OPENCODE_TIMEOUT_MODELS:-}" ]] && contains_model "$FAKE_OPENCOD
 fi
 
 if [[ -n "${FAKE_OPENCODE_ERROR_MODELS:-}" ]] && contains_model "$FAKE_OPENCODE_ERROR_MODELS" "${MODEL:-}"; then
-  printf 'simulated model error for %s\n' "${MODEL:-}" >&2
+  printf 'deadline exceeded: simulated model error for %s\n' "${MODEL:-}" >&2
   exit 23
 fi
 

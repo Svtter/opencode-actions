@@ -566,6 +566,52 @@ class TestGithubRunOpencode(unittest.TestCase):
         self.assertEqual(result.returncode, 0, f"stderr: {result.stderr}")
         self.assertIn("MODEL=zhipuai-coding-plan/glm-5.1", result.stdout)
 
+    def test_fallback_on_regex(self):
+        """Should fallback when output matches fallback-on-regex."""
+        self.reset_env()
+        result = self.run_wrapper(
+            GITHUB_RUN_OPENCODE_MODEL="zhipuai-coding-plan/glm-5",
+            GITHUB_RUN_OPENCODE_FALLBACK_MODELS="opencode-go/gemini-2.5-pro",
+            GITHUB_RUN_OPENCODE_MODEL_TIMEOUT_SECONDS="5",
+            GITHUB_RUN_OPENCODE_FALLBACK_ON_REGEX="deadline exceeded",
+            FAKE_OPENCODE_ERROR_MODELS="zhipuai-coding-plan/glm-5",
+        )
+        self.assertEqual(result.returncode, 0, f"stderr: {result.stderr}")
+        self.assertIn("MODEL=opencode-go/gemini-2.5-pro", result.stdout)
+        self.assertIn("matched fallback regex", result.stderr)
+
+    def test_api_key_filtering_skips_model(self):
+        """Should skip models whose provider key is unavailable."""
+        self.reset_env()
+        self.env.pop("GITHUB_RUN_OPENCODE_ZHIPU_API_KEY", None)
+        self.env.pop("ZHIPU_API_KEY", None)
+        result = self.run_wrapper(
+            GITHUB_RUN_OPENCODE_MODEL="zhipuai-coding-plan/glm-5",
+            GITHUB_RUN_OPENCODE_FALLBACK_MODELS="opencode-go/gemini-2.5-pro",
+        )
+        self.assertEqual(result.returncode, 0, f"stderr: {result.stderr}")
+        self.assertIn("MODEL=opencode-go/gemini-2.5-pro", result.stdout)
+
+    def test_newline_delimited_fallback_models(self):
+        """Should support newline-separated fallback-models."""
+        self.reset_env()
+        result = self.run_wrapper(
+            GITHUB_RUN_OPENCODE_MODEL="wrapper-model",
+            GITHUB_RUN_OPENCODE_FALLBACK_MODELS="opencode-go/gemini-2.5-pro\nzhipuai-coding-plan/glm-5.1",
+            GITHUB_RUN_OPENCODE_MODEL_TIMEOUT_SECONDS="1",
+            FAKE_OPENCODE_TIMEOUT_MODELS="wrapper-model",
+            FAKE_OPENCODE_TIMEOUT_SLEEP_SECONDS="2",
+        )
+        self.assertEqual(result.returncode, 0, f"stderr: {result.stderr}")
+        self.assertIn("MODEL=opencode-go/gemini-2.5-pro", result.stdout)
+
+    def test_global_timeout_zero_disables_timeout(self):
+        """timeout-seconds=0 should disable global timeout."""
+        self.reset_env()
+        result = self.run_wrapper(GITHUB_RUN_OPENCODE_TIMEOUT_SECONDS="0")
+        self.assertEqual(result.returncode, 0, f"stderr: {result.stderr}")
+        self.assertNotIn("TIMEOUT_DURATION", result.stdout)
+
 
 class TestReviewAction(unittest.TestCase):
     """Tests for review action metadata."""

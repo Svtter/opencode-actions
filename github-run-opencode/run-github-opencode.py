@@ -50,7 +50,7 @@ def validate_regex(pattern: str, name: str) -> None:
 
 def parse_candidate_models(raw_list: str) -> list[str]:
     result: list[str] = []
-    for item in raw_list.split(","):
+    for item in re.split(r"[\n,]", raw_list):
         normalized = item.strip().strip(",")
         if normalized and normalized not in result:
             result.append(normalized)
@@ -172,6 +172,7 @@ def main() -> int:
 
     atexit.register(cleanup)
     signal.signal(signal.SIGTERM, cleanup)
+    signal.signal(signal.SIGINT, cleanup)
 
     if not candidate_models:
         return run_single(run_script, timeout_seconds)
