@@ -50,8 +50,8 @@ def validate_regex(pattern: str, name: str) -> None:
 
 def parse_candidate_models(raw_list: str) -> list[str]:
     result: list[str] = []
-    for item in re.split(r"[\n,]", raw_list):
-        normalized = item.strip().strip(",")
+    for item in re.split(r"[\r\n,]+", raw_list):
+        normalized = item.strip()
         if normalized and normalized not in result:
             result.append(normalized)
     return result
@@ -172,6 +172,8 @@ def main() -> int:
 
     atexit.register(cleanup)
     signal.signal(signal.SIGTERM, cleanup)
+    # Intentionally replace default KeyboardInterrupt with cleanup + exit(130)
+    # to ensure temp files are removed when the action is interrupted.
     signal.signal(signal.SIGINT, cleanup)
 
     if not candidate_models:
