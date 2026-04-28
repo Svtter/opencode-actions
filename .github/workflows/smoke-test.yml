@@ -1,0 +1,38 @@
+name: Smoke Test Actions
+
+on:
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Test github-run-opencode action loads
+        uses: ./github-run-opencode
+        with:
+          model: test-model
+          prompt: "echo hello"
+          timeout-seconds: "5"
+          attempts: "1"
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+
+      - name: Test review action loads
+        uses: ./review
+        with:
+          model: test-model
+          timeout-seconds: "5"
+          attempts: "1"
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+
+      - name: Test feature-missing action loads
+        uses: ./feature-missing
+        with:
+          model: test-model
+          timeout-seconds: "5"
+          attempts: "1"
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
