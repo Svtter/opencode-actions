@@ -1,6 +1,8 @@
 name: Smoke Test Actions
 
 on:
+  push:
+    branches: [feat/review-model-router]
   workflow_dispatch:
 
 jobs:
