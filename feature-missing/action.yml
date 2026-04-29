@@ -118,6 +118,22 @@ inputs:
     description: Value exported as OPENCODE_API_KEY before running `opencode github run`. The opencode-go provider shares this env var with OpenCode Zen.
     required: false
     default: ""
+  deepseek-api-key:
+    description: Value exported as DEEPSEEK_API_KEY before running `opencode github run`.
+    required: false
+    default: ""
+  fallback-models:
+    description: Optional comma- or newline-delimited fallback models tried after timeout or timeout-like failures.
+    required: false
+    default: ""
+  model-timeout-seconds:
+    description: Per-model timeout used before rotating to the next fallback model when fallback-models are configured. Set 0 to disable.
+    required: false
+    default: "300"
+  fallback-on-regex:
+    description: Rotate to the next fallback model when output matches this regex.
+    required: false
+    default: timed out|timeout|deadline exceeded|context deadline exceeded|operation timed out|connection timed out
 
 runs:
   using: composite
@@ -192,4 +208,13 @@ runs:
         GITHUB_RUN_OPENCODE_GITHUB_TOKEN: ${{ inputs.github-token }}
         GITHUB_RUN_OPENCODE_ZHIPU_API_KEY: ${{ inputs.zhipu-api-key }}
         GITHUB_RUN_OPENCODE_OPENCODE_GO_API_KEY: ${{ inputs.opencode-go-api-key }}
-      run: ${{ github.action_path }}/../github-run-opencode/run-github-opencode.sh
+        GITHUB_RUN_OPENCODE_DEEPSEEK_API_KEY: ${{ inputs.deepseek-api-key }}
+        GITHUB_RUN_OPENCODE_FALLBACK_MODELS: ${{ inputs.fallback-models }}
+        GITHUB_RUN_OPENCODE_MODEL_TIMEOUT_SECONDS: ${{ inputs.model-timeout-seconds }}
+        GITHUB_RUN_OPENCODE_FALLBACK_ON_REGEX: ${{ inputs.fallback-on-regex }}
+      run: |
+        if ! command -v python3 >/dev/null 2>&1; then
+          printf 'python3 is required but not installed on this runner\n' >&2
+          exit 1
+        fi
+        python3 ${{ github.action_path }}/../github-run-opencode/run-github-opencode.py
