@@ -99,9 +99,9 @@ inputs:
     required: false
     default: ""
   reasoning-effort:
-    description: Reasoning effort level for the model agent. Allowed values are low, medium, high, max. Empty means no override.
+    description: Reasoning effort level for the model agent. Allowed values are low, medium, high, max.
     required: false
-    default: ""
+    default: "max"
   enable-thinking:
     description: Enable thinking mode for the model agent. When true, generates opencode.json with thinking.type=enabled.
     required: false
