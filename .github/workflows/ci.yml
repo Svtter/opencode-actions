@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   smoke-actions:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     env:
       FAKE_OPENCODE_VERSION: 1.14.20
     steps:

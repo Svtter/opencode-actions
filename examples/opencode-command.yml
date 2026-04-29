@@ -65,7 +65,7 @@ jobs:
 
       - name: Run OpenCode
         if: ${{ steps.target.outputs.is_fork != 'true' }}
-        uses: Svtter/opencode-actions/github-run-opencode@v1
+        uses: Svtter/opencode-actions/github-run-opencode@v2
         env:
           MODEL_NAME: zhipuai-coding-plan/glm-5.1
         with:

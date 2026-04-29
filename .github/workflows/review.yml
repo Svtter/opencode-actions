@@ -20,7 +20,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.ref }}
 
       - name: Run OpenCode review
-        uses: Svtter/opencode-actions/review@v1
+        uses: Svtter/opencode-actions/review@v2
         with:
           model: ${{ vars.MODEL_NAME }}
           

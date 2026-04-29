@@ -20,7 +20,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.ref }}
 
       - name: Run OpenCode review
-        uses: Svtter/opencode-actions/review@v1
+        uses: Svtter/opencode-actions/review@v2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           zhipu-api-key: ${{ secrets.ZHIPU_API_KEY }}

@@ -10,7 +10,7 @@ Write this in your CI.yaml
 
 ```yaml
 - name: Run OpenCode review
-  uses: Svtter/opencode-actions/review@v1
+  uses: Svtter/opencode-actions/review@v2
   with:
     github-token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -51,6 +51,7 @@ Use this when you want the shortest consumer workflow for `opencode github run`.
 | `prompt` | built-in PR review template | Exported as `PROMPT` before `opencode github run` |
 | `github-token` | empty | Exported as `GITHUB_TOKEN` before `opencode github run` |
 | `zhipu-api-key` | empty | Exported as `ZHIPU_API_KEY` before `opencode github run` |
+| `deepseek-api-key` | empty | Exported as `DEEPSEEK_API_KEY` before `opencode github run` |
 | `opencode-go-api-key` | empty | Exported as `OPENCODE_GO_API_KEY` before `opencode github run` |
 | `use-github-token` | `true` | Exported as `USE_GITHUB_TOKEN` before `opencode github run` |
 | `attempts` | `3` | Total attempts before failing |
@@ -87,7 +88,7 @@ Use this alongside `review` to audit whether a PR's implementation covers all re
 
 ```yaml
 - name: Run feature missing audit
-  uses: Svtter/opencode-actions/feature-missing@v1
+  uses: Svtter/opencode-actions/feature-missing@v2
   with:
     github-token: ${{ secrets.GITHUB_TOKEN }}
     zhipu-api-key: ${{ secrets.ZHIPU_API_KEY }}
@@ -142,16 +143,16 @@ In the common same-job case, `setup-opencode` already exports `opencode` to `PAT
 Public consumers should reference the subdirectory action path:
 
 ```yaml
-uses: Svtter/opencode-actions/review@v1
-uses: Svtter/opencode-actions/feature-missing@v1
-uses: Svtter/opencode-actions/github-run-opencode@v1
-uses: Svtter/opencode-actions/setup-opencode@v1
-uses: Svtter/opencode-actions/run-opencode@v1
+uses: Svtter/opencode-actions/review@v2
+uses: Svtter/opencode-actions/feature-missing@v2
+uses: Svtter/opencode-actions/github-run-opencode@v2
+uses: Svtter/opencode-actions/setup-opencode@v2
+uses: Svtter/opencode-actions/run-opencode@v2
 ```
 
 ```yaml
 - name: Run OpenCode review
-  uses: Svtter/opencode-actions/review@v1
+  uses: Svtter/opencode-actions/review@v2
   with:
     github-token: ${{ secrets.GITHUB_TOKEN }}
     zhipu-api-key: ${{ secrets.ZHIPU_API_KEY }}
@@ -193,7 +194,7 @@ This repository includes a CI workflow that:
 2. Verify `CI` passes on `main`.
 3. Create a GitHub release with a semver tag such as `v1.0.0`.
 4. Confirm the `Update Major Tag` workflow moved `v1` to that release.
-5. Use `owner/repo/review@v1` for the simplest review setup, `owner/repo/feature-missing@v1` for spec coverage audit, `owner/repo/github-run-opencode@v1` for generic `github run`, or `owner/repo/setup-opencode@v1` plus `owner/repo/run-opencode@v1` for more control.
+5. Use `owner/repo/review@v2` for the simplest review setup, `owner/repo/feature-missing@v2` for spec coverage audit, `owner/repo/github-run-opencode@v2` for generic `github run`, or `owner/repo/setup-opencode@v2` plus `owner/repo/run-opencode@v2` for more control.
 
 The initial release-notes template lives at `docs/releases/v1.0.0.md`.
 

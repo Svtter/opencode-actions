@@ -682,9 +682,9 @@ class TestDogfoodWorkflow(unittest.TestCase):
     def test_workflow_exists(self):
         self.assertTrue(self.workflow_file.exists())
 
-    def test_uses_review_v1(self):
+    def test_uses_review_v2(self):
         content = self.workflow_file.read_text()
-        self.assertIn("uses: Svtter/opencode-actions/review@v1", content)
+        self.assertIn("uses: Svtter/opencode-actions/review@v2", content)
 
     def test_has_model_input(self):
         content = self.workflow_file.read_text()
