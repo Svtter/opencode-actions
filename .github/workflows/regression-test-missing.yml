@@ -1,0 +1,33 @@
+name: OpenCode PR Regression Test Missing
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+  regression-test-missing:
+    name: Regression Test Missing
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: write
+      issues: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          clean: true
+          persist-credentials: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref || github.event.pull_request.head.sha }}
+
+      - name: Run regression test missing audit
+        uses: Svtter/opencode-actions/regression-test-missing@v2
+        with:
+          model: ${{ vars.MODEL_NAME }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          zhipu-api-key: ${{ secrets.ZHIPU_API_KEY }}
+          deepseek-api-key: ${{ secrets.DEEPSEEK_API_KEY }}
+          opencode-go-api-key: ${{ secrets.OPENCODE_GO_API_KEY }}

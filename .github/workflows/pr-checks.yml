@@ -1,0 +1,84 @@
+name: OpenCode PR Checks
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+  review:
+    name: Code Review
+    if: github.event.pull_request.draft == false && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@v6
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      - name: Run OpenCode review
+        uses: Svtter/opencode-actions/review@v2
+        with:
+          model: ${{ vars.MODEL_NAME }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          zhipu-api-key: ${{ secrets.ZHIPU_API_KEY }}
+          deepseek-api-key: ${{ secrets.DEEPSEEK_API_KEY }}
+          opencode-go-api-key: ${{ secrets.OPENCODE_GO_API_KEY }}
+
+  feature-missing:
+    name: Feature Missing
+    if: github.event.pull_request.draft == false && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: write
+      issues: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          clean: true
+          persist-credentials: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref || github.event.pull_request.head.sha }}
+
+      - name: Run feature missing audit
+        uses: Svtter/opencode-actions/feature-missing@v2
+        with:
+          model: ${{ vars.MODEL_NAME }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          zhipu-api-key: ${{ secrets.ZHIPU_API_KEY }}
+          deepseek-api-key: ${{ secrets.DEEPSEEK_API_KEY }}
+          opencode-go-api-key: ${{ secrets.OPENCODE_GO_API_KEY }}
+
+  regression-test-missing:
+    name: Regression Test Missing
+    if: github.event.pull_request.draft == false && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: write
+      issues: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          clean: true
+          persist-credentials: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref || github.event.pull_request.head.sha }}
+
+      - name: Run regression test missing audit
+        uses: Svtter/opencode-actions/regression-test-missing@v2
+        with:
+          model: ${{ vars.MODEL_NAME }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          zhipu-api-key: ${{ secrets.ZHIPU_API_KEY }}
+          deepseek-api-key: ${{ secrets.DEEPSEEK_API_KEY }}
+          opencode-go-api-key: ${{ secrets.OPENCODE_GO_API_KEY }}

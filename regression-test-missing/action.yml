@@ -31,9 +31,9 @@ inputs:
     required: false
     default: "false"
   version:
-    description: Minimum required OpenCode version (semver). If the cached binary is older, it will be reinstalled. Empty string disables version checking.
+    description: Minimum required OpenCode version (semver). If the cached binary is older, it will be reinstalled. Defaults to the version in setup-opencode/default-version. Use "none" to disable version checking.
     required: false
-    default: "1.4.5"
+    default: ""
   working-directory:
     description: Optional working directory before running opencode.
     required: false
@@ -152,6 +152,27 @@ runs:
         printf 'regression-test-missing currently supports Linux runners only\n' >&2
         exit 1
 
+    - id: version
+      shell: bash
+      run: |
+        set -euo pipefail
+        effective="${{ inputs.version }}"
+        if [[ "$effective" == "none" ]]; then
+          effective=""
+        elif [[ -z "$effective" ]]; then
+          default_file="${{ github.action_path }}/../setup-opencode/default-version"
+          if [[ ! -f "$default_file" ]]; then
+            printf 'error: default-version file not found at %s\n' "$default_file" >&2
+            exit 1
+          fi
+          effective="$(tr -d '[:space:]' < "$default_file")"
+          if [[ ! "$effective" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            printf 'error: invalid version in %s: %s\n' "$default_file" "$(cat "$default_file")" >&2
+            exit 1
+          fi
+        fi
+        printf 'version=%s\n' "$effective" >>"$GITHUB_OUTPUT"
+
     - id: paths
       shell: bash
       env:
@@ -189,7 +210,7 @@ runs:
         path: |
           ${{ steps.paths.outputs.install_dir }}
           ${{ steps.paths.outputs.xdg_cache_home }}
-        key: opencode-${{ runner.os }}-${{ runner.arch }}-${{ steps.key.outputs.install_url_hash }}-${{ inputs.version }}-${{ inputs.cache-key }}
+        key: regression-test-missing-opencode-${{ runner.os }}-${{ runner.arch }}-${{ steps.key.outputs.install_url_hash }}-${{ steps.version.outputs.version }}-${{ inputs.cache-key }}
 
     - shell: bash
       env:
@@ -198,7 +219,7 @@ runs:
         OPENCODE_INSTALL_URL: ${{ inputs.install-url }}
         OPENCODE_INSTALL_ATTEMPTS: ${{ inputs.install-attempts }}
         OPENCODE_ALLOW_PREINSTALLED: ${{ inputs.allow-preinstalled }}
-        OPENCODE_MIN_VERSION: ${{ inputs.version }}
+        OPENCODE_MIN_VERSION: ${{ steps.version.outputs.version }}
       run: ${{ github.action_path }}/../setup-opencode/install-opencode.sh
 
     - shell: bash

@@ -25,6 +25,7 @@ You'll get a automatic reviewer in Chinese.
 
 - `review`: opinionated PR review wrapper with built-in prompt and model defaults
 - `feature-missing`: audits PR implementation against linked issue spec to find missing features
+- `regression-test-missing`: detects PRs that fix bugs or modify behavior but lack regression tests
 - `github-run-opencode`: one-step wrapper for the common `opencode github run` workflow
 - `setup-opencode`: installs OpenCode, restores a dedicated cache, and exports the binary path
 - `run-opencode`: runs `opencode` with optional retry logic for flaky GitHub network failures
@@ -91,6 +92,28 @@ Use this alongside `review` to audit whether a PR's implementation covers all re
     opencode-go-api-key: ${{ secrets.OPENCODE_GO_API_KEY }}
 ```
 
+## regression-test-missing
+
+Use this alongside `review` and `feature-missing` to detect PRs that fix bugs or modify existing behavior but lack regression tests.
+
+- classifies the PR as BUGFIX, BEHAVIOR_CHANGE, NEW_FEATURE, or CHORE
+- only flags missing tests for BUGFIX and BEHAVIOR_CHANGE PRs
+- suggests specific test cases that would catch regressions
+- shares the same inputs and cache as `review`/`feature-missing`
+
+```yaml
+- name: Run regression test missing audit
+  uses: Svtter/opencode-actions/regression-test-missing@v2
+  with:
+    github-token: ${{ secrets.GITHUB_TOKEN }}
+    zhipu-api-key: ${{ secrets.ZHIPU_API_KEY }}
+    opencode-go-api-key: ${{ secrets.OPENCODE_GO_API_KEY }}
+```
+
+## Combined PR Checks Workflow
+
+For convenience, a combined workflow file (`.github/workflows/pr-checks.yml`) is provided that runs all three checks (`review`, `feature-missing`, `regression-test-missing`) as parallel jobs in a single workflow. Copy it to your repository to get all three checks with one workflow file.
+
 ## setup-opencode
 
 ### Inputs
@@ -141,6 +164,7 @@ Public consumers should reference the subdirectory action path:
 ```yaml
 uses: Svtter/opencode-actions/review@v2
 uses: Svtter/opencode-actions/feature-missing@v2
+uses: Svtter/opencode-actions/regression-test-missing@v2
 uses: Svtter/opencode-actions/github-run-opencode@v2
 uses: Svtter/opencode-actions/setup-opencode@v2
 uses: Svtter/opencode-actions/run-opencode@v2
@@ -175,7 +199,7 @@ This repository includes a CI workflow that:
 
 - runs `shellcheck` on every bundled shell script
 - runs the local shell-based regression suite
-- smoke-tests all four actions through `uses: ./setup-opencode`, `uses: ./run-opencode`, `uses: ./github-run-opencode`, `uses: ./review`, and `uses: ./feature-missing`
+- smoke-tests all actions through `uses: ./setup-opencode`, `uses: ./run-opencode`, `uses: ./github-run-opencode`, `uses: ./review`, `uses: ./feature-missing`, and `uses: ./regression-test-missing`
 
 ## Release Policy
 
@@ -190,7 +214,7 @@ This repository includes a CI workflow that:
 2. Verify `CI` passes on `main`.
 3. Create a GitHub release with a semver tag such as `v1.0.0`.
 4. Confirm the `Update Major Tag` workflow moved `v1` to that release.
-5. Use `owner/repo/review@v2` for the simplest review setup, `owner/repo/feature-missing@v2` for spec coverage audit, `owner/repo/github-run-opencode@v2` for generic `github run`, or `owner/repo/setup-opencode@v2` plus `owner/repo/run-opencode@v2` for more control.
+5. Use `owner/repo/review@v2` for the simplest review setup, `owner/repo/feature-missing@v2` for spec coverage audit, `owner/repo/regression-test-missing@v2` for regression test audit, `owner/repo/github-run-opencode@v2` for generic `github run`, or `owner/repo/setup-opencode@v2` plus `owner/repo/run-opencode@v2` for more control.
 
 The initial release-notes template lives at `docs/releases/v1.0.0.md`.
 
