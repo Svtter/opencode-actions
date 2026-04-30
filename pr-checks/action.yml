@@ -1,0 +1,230 @@
+name: OpenCode PR Checks
+description: Runs all three OpenCode PR checks (review, feature-missing, regression-test-missing) in a single opencode invocation.
+
+inputs:
+  model:
+    description: Value exported as MODEL before running `opencode github run`.
+    required: false
+    default: ""
+  install-url:
+    description: Installer URL used to bootstrap OpenCode.
+    required: false
+    default: https://opencode.ai/install
+  install-dir:
+    description: Directory where the opencode binary should be installed.
+    required: false
+    default: ""
+  xdg-cache-home:
+    description: Dedicated XDG cache directory for OpenCode.
+    required: false
+    default: ""
+  cache:
+    description: Cache the install and XDG cache directories with actions/cache.
+    required: false
+    default: "true"
+  cache-key:
+    description: Cache key suffix used to invalidate installer-based caches.
+    required: false
+    default: v1
+  install-attempts:
+    description: Number of installer retry attempts.
+    required: false
+    default: "3"
+  allow-preinstalled:
+    description: Reuse an existing opencode found on PATH instead of forcing installer bootstrap.
+    required: false
+    default: "false"
+  version:
+    description: Minimum required OpenCode version (semver). Empty string disables version checking.
+    required: false
+    default: "1.4.5"
+  working-directory:
+    description: Optional working directory before running opencode.
+    required: false
+    default: ""
+  attempts:
+    description: Total number of attempts before failing.
+    required: false
+    default: "3"
+  retry-profile:
+    description: Built-in retry profile, defaults to github-network for common GitHub usage.
+    required: false
+    default: github-network
+  retry-on-regex:
+    description: Retry only when stderr or stdout matches this regex.
+    required: false
+    default: ""
+  retry-delay-seconds:
+    description: Base delay between retries in seconds.
+    required: false
+    default: "15"
+  timeout-seconds:
+    description: Maximum execution time in seconds for `opencode github run`. Set 0 to disable.
+    required: false
+    default: "600"
+  prompt:
+    description: Value exported as PROMPT before running `opencode github run`. Defaults to a combined prompt that runs all three checks.
+    required: false
+    default: |
+      Run all three PR checks on this pull request (read-only mode, DO NOT modify any code).
+
+      Execute these checks in order and combine the results:
+
+      ## Check 1: Code Review
+      Review the code for:
+      - Code quality issues
+      - Potential bugs or logic errors
+      - Code style consistency
+      - Security concerns
+      - Performance issues
+
+      ## Check 2: Feature Missing
+      1. Find linked issues via `gh pr view --json closingIssuesReferences,title,body`.
+      2. If linked issues exist, read each issue body as the feature spec.
+      3. If no linked issues, extract requirements from the PR title and body.
+      4. Compare the spec/requirements against the implementation.
+      Focus on: missing features, partial implementations, integration gaps, missing edge case handling.
+      Do NOT report: code style issues, bugs in existing code, suggestions beyond the spec.
+
+      ## Check 3: Regression Test Missing
+      1. Determine PR type: BUGFIX / BEHAVIOR_CHANGE / NEW_FEATURE / CHORE.
+      2. For BUGFIX and BEHAVIOR_CHANGE PRs, check if regression tests exist.
+      3. For NEW_FEATURE and CHORE PRs, no regression tests needed.
+      Focus on: bug fixes without reproducers, behavior changes without coverage, missing edge case tests.
+      Do NOT report: code style, missing features from spec, test suggestions for trivial changes.
+
+      Please respond in Chinese. DO NOT modify any code, only provide analysis.
+
+      Output format - three sections:
+
+      ### 代码审查
+      - Decision: 可合并 / 有条件合并 / 不可合并
+      - Summary
+      - 阻塞项 (blocking issues, or "阻塞项：无")
+      - 建议项 (suggestions, or "建议项：无")
+
+      ### 功能遗漏
+      - Decision: 无遗漏 / 发现遗漏
+      - PR type detected
+      - If gaps found, list each by severity (CRITICAL / MEDIUM / LOW)
+
+      ### 回归测试
+      - Decision: 无需回归测试 / 缺少回归测试
+      - PR type detected
+      - If tests missing, list each gap with suggested test case description and severity (CRITICAL / MEDIUM / LOW)
+  use-github-token:
+    description: Value exported as USE_GITHUB_TOKEN before running `opencode github run`.
+    required: false
+    default: "true"
+  github-token:
+    description: Value exported as GITHUB_TOKEN before running `opencode github run`.
+    required: false
+    default: ""
+  zhipu-api-key:
+    description: Value exported as ZHIPU_API_KEY before running `opencode github run`.
+    required: false
+    default: ""
+  opencode-go-api-key:
+    description: Value exported as OPENCODE_API_KEY before running `opencode github run`. The opencode-go provider shares this env var with OpenCode Zen.
+    required: false
+    default: ""
+  deepseek-api-key:
+    description: Value exported as DEEPSEEK_API_KEY before running `opencode github run`.
+    required: false
+    default: ""
+  fallback-models:
+    description: Optional comma- or newline-delimited fallback models tried after timeout or timeout-like failures.
+    required: false
+    default: ""
+  model-timeout-seconds:
+    description: Per-model timeout used before rotating to the next fallback model when fallback-models are configured. Set 0 to disable.
+    required: false
+    default: "300"
+  fallback-on-regex:
+    description: Rotate to the next fallback model when output matches this regex.
+    required: false
+    default: timed out|timeout|deadline exceeded|context deadline exceeded|operation timed out|connection timed out
+
+runs:
+  using: composite
+  steps:
+    - if: ${{ runner.os != 'Linux' }}
+      shell: bash
+      run: |
+        set -euo pipefail
+        printf 'pr-checks currently supports Linux runners only\n' >&2
+        exit 1
+
+    - id: paths
+      shell: bash
+      env:
+        INPUT_INSTALL_DIR: ${{ inputs.install-dir }}
+        INPUT_XDG_CACHE_HOME: ${{ inputs.xdg-cache-home }}
+      run: |
+        set -euo pipefail
+        install_dir="$INPUT_INSTALL_DIR"
+        xdg_cache_home="$INPUT_XDG_CACHE_HOME"
+
+        if [[ -z "$install_dir" ]]; then
+          install_dir="${RUNNER_TOOL_CACHE:-$HOME/.cache}/opencode/bin"
+        fi
+
+        if [[ -z "$xdg_cache_home" ]]; then
+          xdg_cache_home="${RUNNER_TOOL_CACHE:-$HOME/.cache}/opencode/cache"
+        fi
+
+        printf 'install_dir=%s\n' "$install_dir" >>"$GITHUB_OUTPUT"
+        printf 'xdg_cache_home=%s\n' "$xdg_cache_home" >>"$GITHUB_OUTPUT"
+
+    - id: key
+      shell: bash
+      env:
+        INPUT_INSTALL_URL: ${{ inputs.install-url }}
+      run: |
+        set -euo pipefail
+        install_url_hash="$(printf '%s' "$INPUT_INSTALL_URL" | sha256sum | cut -d ' ' -f1)"
+        printf 'install_url_hash=%s\n' "$install_url_hash" >>"$GITHUB_OUTPUT"
+
+    - id: cache
+      if: ${{ inputs.cache == 'true' }}
+      uses: actions/cache@v5
+      with:
+        path: |
+          ${{ steps.paths.outputs.install_dir }}
+          ${{ steps.paths.outputs.xdg_cache_home }}
+        key: pr-checks-opencode-${{ runner.os }}-${{ runner.arch }}-${{ steps.key.outputs.install_url_hash }}-${{ inputs.version }}-${{ inputs.cache-key }}
+
+    - shell: bash
+      env:
+        OPENCODE_INSTALL_DIR: ${{ steps.paths.outputs.install_dir }}
+        XDG_CACHE_HOME: ${{ steps.paths.outputs.xdg_cache_home }}
+        OPENCODE_INSTALL_URL: ${{ inputs.install-url }}
+        OPENCODE_INSTALL_ATTEMPTS: ${{ inputs.install-attempts }}
+        OPENCODE_ALLOW_PREINSTALLED: ${{ inputs.allow-preinstalled }}
+        OPENCODE_MIN_VERSION: ${{ inputs.version }}
+      run: ${{ github.action_path }}/../setup-opencode/install-opencode.sh
+
+    - shell: bash
+      env:
+        GITHUB_RUN_OPENCODE_WORKING_DIRECTORY: ${{ inputs.working-directory }}
+        GITHUB_RUN_OPENCODE_ATTEMPTS: ${{ inputs.attempts }}
+        GITHUB_RUN_OPENCODE_RETRY_PROFILE: ${{ inputs.retry-profile }}
+        GITHUB_RUN_OPENCODE_RETRY_ON_REGEX: ${{ inputs.retry-on-regex }}
+        GITHUB_RUN_OPENCODE_RETRY_DELAY_SECONDS: ${{ inputs.retry-delay-seconds }}
+        GITHUB_RUN_OPENCODE_TIMEOUT_SECONDS: ${{ inputs.timeout-seconds }}
+        GITHUB_RUN_OPENCODE_MODEL: ${{ inputs.model }}
+        GITHUB_RUN_OPENCODE_PROMPT: ${{ inputs.prompt }}
+        GITHUB_RUN_OPENCODE_USE_GITHUB_TOKEN: ${{ inputs.use-github-token }}
+        GITHUB_RUN_OPENCODE_GITHUB_TOKEN: ${{ inputs.github-token }}
+        GITHUB_RUN_OPENCODE_ZHIPU_API_KEY: ${{ inputs.zhipu-api-key }}
+        GITHUB_RUN_OPENCODE_OPENCODE_GO_API_KEY: ${{ inputs.opencode-go-api-key }}
+        GITHUB_RUN_OPENCODE_DEEPSEEK_API_KEY: ${{ inputs.deepseek-api-key }}
+        GITHUB_RUN_OPENCODE_FALLBACK_MODELS: ${{ inputs.fallback-models }}
+        GITHUB_RUN_OPENCODE_MODEL_TIMEOUT_SECONDS: ${{ inputs.model-timeout-seconds }}
+        GITHUB_RUN_OPENCODE_FALLBACK_ON_REGEX: ${{ inputs.fallback-on-regex }}
+      run: |
+        if ! command -v python3 >/dev/null 2>&1; then
+          printf 'python3 is required but not installed on this runner\n' >&2
+          exit 1
+        fi
+        python3 ${{ github.action_path }}/../github-run-opencode/run-github-opencode.py

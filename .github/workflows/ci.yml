@@ -61,6 +61,26 @@ jobs:
           github-token: smoke-gh-token
           zhipu-api-key: smoke-zhipu-token
 
+      - name: Run regression-test-missing action
+        uses: ./regression-test-missing
+        with:
+          install-url: http://127.0.0.1:8765/fake-installer.sh
+          cache: false
+          install-attempts: 1
+          attempts: 1
+          github-token: smoke-gh-token
+          zhipu-api-key: smoke-zhipu-token
+
+      - name: Run pr-checks action
+        uses: ./pr-checks
+        with:
+          install-url: http://127.0.0.1:8765/fake-installer.sh
+          cache: false
+          install-attempts: 1
+          attempts: 1
+          github-token: smoke-gh-token
+          zhipu-api-key: smoke-zhipu-token
+
       - name: Stop fake installer server
         if: always()
         run: |
