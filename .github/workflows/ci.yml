@@ -12,7 +12,7 @@ jobs:
   smoke-actions:
     runs-on: ubuntu-latest
     env:
-      FAKE_OPENCODE_VERSION: 1.14.20
+      FAKE_OPENCODE_VERSION: 1.14.30
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -49,7 +49,7 @@ jobs:
           github-token: smoke-gh-token
           zhipu-api-key: smoke-zhipu-token
         env:
-          FAKE_OPENCODE_VERSION: 1.14.20
+          FAKE_OPENCODE_VERSION: 1.14.30
 
       - name: Run review convenience action
         uses: ./review
