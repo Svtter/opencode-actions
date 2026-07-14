@@ -6,6 +6,12 @@
 
 本仓库基于 Apache 2.0 许可证。
 
+## 迁移说明
+
+本项目已不再积极维护。我们已迁移到 [sun-praise/pi-review-agent](https://github.com/sun-praise/pi-review-agent)。
+
+原因是 [issue #278](https://github.com/sun-praise/opencode-actions/issues/278)：opencode 对 litellm/deepseek 记录 `tokens_cache_read = 0`，导致成本统计失真且无法观测 v2 会话恢复带来的节省。该问题需要在上游 opencode 代码中修复，而我们无法修改上游代码。
+
 ## 快速开始
 
 在你的 CI.yaml 中写入：

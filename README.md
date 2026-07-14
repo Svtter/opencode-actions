@@ -6,6 +6,12 @@ Reusable GitHub Actions for installing and running OpenCode in other repositorie
 
 This repository is licensed under Apache 2.0.
 
+## Migration Notice
+
+This project is no longer actively maintained. We have migrated to [sun-praise/pi-review-agent](https://github.com/sun-praise/pi-review-agent).
+
+The reason is [issue #278](https://github.com/sun-praise/opencode-actions/issues/278): opencode records `tokens_cache_read = 0` for litellm/deepseek, which distorts cost measurement and makes v2 session-resume savings unobservable. Fixing this requires changes in the upstream opencode codebase, which we cannot modify.
+
 ## TLDR
 
 Write this in your CI.yaml
